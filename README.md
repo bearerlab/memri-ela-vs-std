@@ -6,11 +6,15 @@ DOI: XX_DOI_Link_XX
 ## Summary: 
 
 ## Table of Contents
-[MEMRI Quality Controls and Behavior](###Figure-1,-and-SI-Appendix-Fig.-1-and-2)
-[Statistical Parametric Mapping](###Figure-2,-3,-5,-and-6,-and-SI-Appendix-Fig.-SX,-SX,-SX-and-SX)
-[MEMRI Region of Interest (ROI) Analysis](###Figure-3-and-SI-Appendix-Figs.-SX-XX,-and-Tables-S2-4.)
-[Comparisons with c-fos](###Figure-4-and-SI-Appendix-Figs.-SX-XX.)
-[Segmentation and Fractional Volume](###SPM-Segmentation-used-in-Fig.-5-and-6,-and-SI-Appendix-Fig.-SXX-XX-and-Tables-SXX-XX)
+   [MEMRI Quality Controls and Behavior](###Figure-1,-and-SI-Appendix-Fig.-1-and-2)
+   
+   [Statistical Parametric Mapping](###Figure-2,-3,-5,-and-6,-and-SI-Appendix-Fig.-SX,-SX,-SX-and-SX)
+   
+   [MEMRI Region of Interest (ROI) Analysis](###Figure-3-and-SI-Appendix-Figs.-SX-XX,-and-Tables-S2-4.)
+   
+   [Comparisons with c-fos](###Figure-4-and-SI-Appendix-Figs.-SX-XX.)
+   
+   [Segmentation and Fractional Volume](###SPM-Segmentation-used-in-Fig.-5-and-6,-and-SI-Appendix-Fig.-SXX-XX-and-Tables-SXX-XX)
 
 ### Figure 1, and SI Appendix Figs. S1-3
 1. Processing Pipeline Overview
@@ -59,9 +63,9 @@ DOI: XX_DOI_Link_XX
    - R Scripts
 
 ### SPM Segmentation used in Fig. 5 and 6, and SI Appendix Fig. SXX-XX and Tables SXX-XX 
-1. Fraction Volume Measurements:
-  - InVivo Atlas v10.4 (nii?)
-  - Summary of Bash, Python Scripts
+1. Fraction Volume Measurements.
+   - InVivo Atlas v10.4 (nii?)
+   - Summary of Bash, Python Scripts
 
 2. Fractional Volume Analyses (R Scripts)
    - List of scripts
