@@ -15,7 +15,7 @@ DOI: XX_DOI_Link_XX
    
    [Comparisons with c-fos](###Figure-4-and-SI-Appendix-Figs.-SX-XX.)
    
-   [Segmentation and Fractional Volume](###SPM-Segmentation-used-in-Fig.-5-and-6,-and-SI-Appendix-Fig.-SXX-XX-and-Tables-SXX-XX)
+   [Segmentation and Fractional Volume Analysis](###SPM-Segmentation-used-in-Fig.-5-and-6,-and-SI-Appendix-Fig.-SXX-XX-and-Tables-SXX-XX)
 
 ### Figure 1, and SI Appendix Figs. S1-3
 1. Processing Pipeline Overview
