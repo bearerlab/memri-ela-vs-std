@@ -12,13 +12,6 @@ Brief abstract/summary of the study
 - **[02_roi_analysis/](02_roi_analysis/)** - ROI measurements and c-fos comparisons (Fig. 3-4, S2, S4-6 Tables S2-S4)
 - **[03_spm_segmentation/](03_spm_segmentation/)** - SPM segmentation and analysis (Fig. 5-6, S7 and S9, and Tables S5-S7)
 
-## Code-to-Figure Mapping
-| Figure/Table | Scripts Location | Description |
-|--------------|------------------|-------------|
-| Fig 1 (behavioral) | `01_preprocessing/behavioral_analysis/` | Behavioral analysis |
-| Fig 3 | `02_roi_analysis/memri_roi/` | ROI analysis scripts |
-| ... | ... | ... |
-
 ## Requirements
 - Unix/Linux system (scripts converted from Windows) - or need unix2dos conversion
 - FSL (FMRIB Software Library)
