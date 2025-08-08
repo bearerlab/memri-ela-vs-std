@@ -1,7 +1,7 @@
 # Requirements for Running Scripts
 
 ## Operating System Script Compatibility
-All code was written and revised on a Windows 10/11 OS (x86_64, mingw32, 32GB RAM), with R/Rmd files were run via RStudio for Windows, and Python or Bash scripts were run via Windows Subsystem Linux (WSL). Certain Bash and Python scripts have dependencies for FMRIB Software Library (FSL, https://fsl.fmrib.ox.ac.uk/fsl/docs/).
+All code was written and revised on a Windows 10/11 OS (x86_64, mingw32, 32GB RAM), with R/Rmd files were run via RStudio for Windows, and Python or Bash scripts were run via Windows Subsystem Linux (WSL). Certain Bash and Python scripts have dependencies for FMRIB Software Library (FSL, https://fsl.fmrib.ox.ac.uk/fsl/docs/) and Nifty Reg (https://github.com/KCL-BMEIS/niftyreg).
 
 Notice that the scripts generated for this manuscript follow the naming conventions/file directories used by the researchers. These will likely need to be updated for running any scripts on your systems.   
 
