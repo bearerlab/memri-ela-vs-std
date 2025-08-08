@@ -13,7 +13,7 @@ _R/RStudio (4.4.1)_: R scripts and Markdown were written and executed via RStudi
 
 ## Packages
 
-Below are lists of dependencies/required packages for scripts. In this folder are installation scripts to install used packages on your local device:
+Below are lists of dependencies/required packages for scripts used in this manuscript. In this folder are scripts to install the required packages:
 
 For R: [./Install_R_Packages.R]
 
@@ -44,3 +44,7 @@ _R_:
   - effectsize
   - zoo
   - stats (built-in default)
+
+
+_R Helper Functions_:
+See `./helper_functions.R`
