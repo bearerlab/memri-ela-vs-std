@@ -15,9 +15,9 @@ _R/RStudio (4.4.1)_: R scripts and Markdown were written and executed via RStudi
 
 Below are lists of dependencies/required packages for scripts used in this manuscript. In this folder are scripts to install the required packages:
 
-For R: [./Install_R_Packages.R]
+For R: [install_r_packages.R](/install_R_packages.R)
 
-For Python: [./Install_Python_Packages.py]
+For Python: [install_python_packages.py](/install_python_packages.py)
 
 _Bash_: While no specific packages are required for Bash scripts, they do use multiple FSL functions. Thus, FSL must be installed and set up appropriately for bash scripts to run.
 
@@ -27,23 +27,26 @@ _Python_:
 
 _R_:
 
-  Data Processing:
-  - openxlsx
-  - tidyverse
-  - abind
+  1) Data Processing:
+       - openxlsx
+       - tidyverse
+       - abind
+       - RNifti
 
-  Data Visualization:
-  - knitr
-  - ggplot2
-  - ggnewscale
+  3) Data Visualization:
+       - knitr
+       - ggplot2
+       - ggnewscale
+       - cowplot
 
-  Data Analysis/Statistics:
-  - nlme
-  - emmeans
-  - cars 
-  - effectsize
-  - zoo
-  - stats (built-in default)
+  4) Data Analysis/Statistics:
+       - nlme
+       - emmeans
+       - cars
+       - effectsize
+       - zoo
+       - aricode
+       - nortest
 
 
 _R Helper Functions_:
