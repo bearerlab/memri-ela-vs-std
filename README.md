@@ -1,4 +1,4 @@
-# Source code in 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'
+# Source code for 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'
 
 Authors: Uselman, Taylor. W, Jacobs, Russell E., and Bearer, Elaine L.
 
