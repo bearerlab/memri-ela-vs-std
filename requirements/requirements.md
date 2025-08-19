@@ -7,7 +7,7 @@ Notice that the scripts generated for this manuscript follow the naming conventi
 
 _Bash (GNU bash, version 5.2.21(1))_: All bash scripts were converted from Windows/PC (DOS) to Unix compatibility using dos2unix (https://dos2unix.sourceforge.io/). All converted bash scripts were run in the WSL terminal application. If any bash scripts were not converted to Unix format before upload, please submit an Issue via GitHub and use the 'dos2unix' command for conversion.   
 
-_Python (3.11.5)_: Python  scripts were written/revised in Windows and run in WSL. If using Windows,  WSL is the preferred interface for compatibility across dependencies.  
+_Python (3.11.5)_: Python  scripts were written/revised in Windows and run in WSL. If using Windows,  WSL is the preferred interface for compatibility across software used.  
 
 _R/RStudio (4.4.1)_: R scripts and Markdown were written and executed via RStudio's Windows Installation. Scripts should run across different operating systems
 
