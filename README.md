@@ -2,7 +2,7 @@
 
 Authors: Uselman, Taylor. W, Jacobs, Russell E., and Bearer, Elaine L.
 
-[![DOI](https://img.shields.io/badge/DOI-10.xxxx/journal.xxxx-blue)](https://doi.org/10.xxxx/journal.xxxx)
+[![DOI](https://img.shields.io/badge/DOI-10.1101/bioRxiv.2023.09.10.557058-maroon)](https://doi.org/10.1101/2023.09.10.557058)
 
 ## Overview
 Brief abstract/summary of the study
