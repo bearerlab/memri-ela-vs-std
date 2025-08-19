@@ -38,7 +38,7 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 
 ### ROI Measurement Scripts (non-specific)
 
-[01_segmentation_script_package]{./01_segmentation_script_package}
+[01_segmentation_script_package]{./01_segmentation_script_package/}
 
 #### `ROI_feeder.sh`
 **Purpose:** To feed input image information and ROI location to ROI.sh. 
