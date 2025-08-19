@@ -1,7 +1,7 @@
 # Segmentation of Statistical Maps of MEMRI Signal Intensities and Calculation of Fractional Volumes
 
 ## Overview
-This section contains scripts for segmenting MEMRI images, including mask generation and application, segment-wise statistical summaries (voxel counts), compilation of data, and graphing column graphs. 
+This section contains scripts for segmenting MEMRI images, including mask generation and application, segment-wise statistical summaries (voxel counts), compilation of data, and graphing column graphs. Note that the feeder scripts are used throughout to organize subroutines.
 
 **Associated Figures/Tables:**
 - Figure 5-6 (Fractional Activation Volumes and Fractional Difference Volumes)
@@ -15,16 +15,19 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 ```
 03_spm_segmentation/
 ├── 01_segmentation_script_package/
-   ├── feeder_v4.sh                   # A base 'Feeder' Script that was slightly modified for each ROI analysis below. The feeder script defines the locations/size of ROIs to be measured. 
-   ├── create_mask_feeder.v4                          # Extracts ROI intensity information using FSL functions
-   ├── ROI_Compiler.sh                 # Compiles intermediate results into a CSV for subsequent analysis
-├── 02_Paired_Ttests                           # Signal-to-Noise Ratio Analysis
-│  ├── ROI_feeder_snr.sh                    
-│  └── SNR_memri_analysis.Rmd          # R markdown file for SNR Analysis
-├── 03_Unpaired_Ttests                   # MEMRI Signal Intensities in Threat Responsive Regions
-│  ├── ROI_feeder_fig3.sh                    
-│  └── Fig3_analysis.Rmd               # R markdown file for comparisons in Fig. 3
-└── 04_Anatomical_Comparisons     # MEMRI SI measurements for comparison to c-fos
+   ├── feeder_v4.sh                    # A base 'Feeder' Script that was slightly modified for each ROI analysis below. The feeder script defines the locations/size of ROIs to be measured. 
+   ├── create_mask_feeder.v4           # A script that creates another "feeder" script for segmentation based on InVivo Atlas CSV file.  
+   ├── mask_creator_v4.sh              # This is the feeder script generated, which uses the mask_creation_v4 function/script to create a mask image from each segment. 
+   ├── mask_creation_v4.sh             # Create the mask images for each segment based on InVivo Atlas CSV file info
+   ├── segment_stats_feeder_v4.sh      # Feeder script that reads the names of SPM images in /Inputs/All_Within_Group/ and /Inputs/All_Between_Group/ subdirectories. The SPM file names have the format 'spmT_{Group}_{Condition}_T{Tval}-P{Pval}-C8.nii' This script reads the t-values for thresholding statistical maps for segmentation.
+   ├── segment_stats_w_v4.sh           # Extracts segment statistics from Paired T-test SPMs (within group SPMs)
+   ├── segment_stats_b_v4.sh           # Extracts segment statistics from Unpaired T-test SPMs (between group SPMs)
+   └── combine_v4.py                   # Compiles CSV output files generated for each SPM image into a single CSV file.
+├── fracvol_graph.R                    # Function for graphing fractional volumes according to InVivo Atlas anatomical groupings.
+├── 02_segmentation_analyses/                   
+│  ├── fav_analysis.Rmd                # R markdown file analysis of Paired SPM t-tests             
+│  └── fdv_analysis.Rmd                # R markdown file analysis of Unpaired SPM t-tests  
+└── 04_Anatomical_Comparisons     
    ├── ROI_feeder_cfos.sh                    
    ├── Fig4_cfos_analysis.Rmd          # R markdown file for comparisons in Fig. 4
    └── memri_test_retest_analysis.Rmd  # R markdown file for supplmental test-retest              
