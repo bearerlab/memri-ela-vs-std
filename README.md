@@ -16,5 +16,5 @@ Brief abstract/summary of the study
 - Unix/Linux system (scripts converted from Windows) - or need unix2dos conversion
 - FSL (FMRIB Software Library)
 - NiftyReg
-- Variuos R and Python Packages
+- Various R and Python Packages
 - [See Requirements Notes](requirements/requirements.md)
