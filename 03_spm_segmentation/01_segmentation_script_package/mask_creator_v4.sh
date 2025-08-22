@@ -1,10 +1,11 @@
 #!/bin/bash
-# $1 = primary directory
-# $2 = scripts directory
-# $3 = InVivo Atlas file
-dir=$1
-sdir=$2
-atlas=$3
+
+# Author: Taylor W. Uselman
+
+# Inputs to this function are
+dir=$1 # primary directory
+sdir=$2 # scripts directory
+atlas=$3 #InVivo Atlas file
 
 mkdir $dir/masks/
 
