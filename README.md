@@ -1,11 +1,13 @@
-# Code used Processing and Analysis of Data in 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'
+# Code used for Processing and Analysis of Data in 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'
 
 Authors: Uselman, Taylor. W, Jacobs, Russell E., and Bearer, Elaine L.
 
 [![DOI](https://img.shields.io/badge/DOI-10.1101/bioRxiv.2023.09.10.557058-maroon)](https://doi.org/10.1101/2023.09.10.557058)
 
 ## Overview
-Brief abstract/summary of the study
+
+This repository lists the code (or links to code repositories) used for various processing and analysis steps in "Reconfiguration of Brain-wide Neural Activity after Early Life Adversity", _PNAS_, 2025. Below, we link to each of the major subsections of this repository, which correspond to various sections and figures within the manuscript. Corresponding figures for each subsection are listed in the subdirectories `README.md` files. 
+
 
 ## Repository Structure
 - **[01_preprocessing/](01_preprocessing/)** - MEMRI data preprocessing, quality controls, and behavioral analysis (Figures 1, S1-S3 and S4-S6)
