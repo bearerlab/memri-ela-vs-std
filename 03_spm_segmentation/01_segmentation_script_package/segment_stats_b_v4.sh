@@ -1,49 +1,30 @@
 #!/bin/bash
 
-
 # Inputs
-# $1 = contrast image of difference between gray scales of post and pre injection images
-# $2 = threshold for differences in gray scale between post injection and pre injection images
+spm=$1 # contrast image of difference between gray scales of post and pre injection images
+thr=$2 # threshold for differences in gray scale between post injection and pre injection images
 # NOTE: we want to only see increases in signal intensity due to Mn2+ accumulation therefore the default threshold will be zero
-# $3 = primary directory
+dir=$3 # primary working directory
 
-spm=$1
-name=$(basename $spm)
-thr=$2
-dir=$3
+name=$(basename $spm) 
 
 # Outputs
-# Total Volume of 
-# volume of overlapped SPM and mask
-
 echo "Segmenting ${name}..."
 ANIMID=$(echo ${name:0:${#name}-4})
 # Setup output csv file header
-# echo "SPM,Test,ELA,Geno,Time,SegName,TValue,Vox,Vol_mm,MeanT,StDevT,MinT,MaxT,SigVox,SigVol_mm" > $dir/segstats/${ANIMID}_segstats_b.csv
 echo "SPM,Test,Tthresh,Pval,ELA,Time,SegName,Vox,Vol_mm,MeanT_thr,StDevT_thr,MinT_thr,MaxT_thr,SigVox,SigVol_mm,Cx,Cy,Cz" > $dir/segstats/${ANIMID}_segstats_b.csv
-#^ removed GENO from between ELA and Time
 
 # ELA (Normal/ELA)
-if [[ $ANIMID == *"NgtE"* ]]
+if [[ $ANIMID == *"SgtE"* ]]
 then
-    ELA="Normal"
-elif [[ $ANIMID == *"NltE"* ]]
+    ELA="Std"
+elif [[ $ANIMID == *"SltE"* ]]
 then
     ELA="ELA"
 else
     echo "ELA not recognized"
 fi
 
-# Genotype (WT/KO)
-# if [[ $ANIMID == *"wt"* ]]
-# then
-#     GENO="WT"
-# elif [[ $ANIMID == *"ko"* ]]
-# then
-#     GENO="KO"
-# else
-#     echo "Genotype not recognized"
-# fi
 # Time point (B/PS/D9_Pre/D9_Post)
 if [[ $ANIMID == *"HC"* ]]
 then
@@ -67,15 +48,9 @@ then
 elif [[ $name == *"P01"* ]];
 then
   pval="0.01"
-# elif [[ $name == *"P005"* ]]; ***
-# then
-#   pval="0.005"
 elif [[ $name == *"P001"* ]];
 then
   pval="0.001"
-# elif [[ $name == *"P0005"* ]]; ***
-# then
-#   pval="0.0005"
 elif [[ $name == *"P0001"* ]];
 then
   pval="0.0001"
@@ -95,11 +70,9 @@ do
   MASKSIZE=$(fslstats $f -V | tr ' ' ',')
   
   # Get total voxels from spm that fall within mask, and calculate range, and mean (also pipe it through to replace space delimiter with comma for easier sorting)
-  #OVERLAP=$(fslstats $con -l $thr -k $f -n -M -S -R -x -C| tr ' ' ',')
   STATS=$(fslstats $spm -k $f -n -M -S -R -V -C | tr ' ' ',')
   
-  # Push segmentation info into comma delimited csv file
-  # TOTAL=$(echo $ANIMID,"Unpaired","NA",$GENO,$TIME,$SNAME,$thr,$MASKSIZE,$STATS)
+  # Push segmentation info into a comma-delimited CSV file
   TOTAL=$(echo $ANIMID,"Unpaired",$thr,$pval,$ELA,$TIME,$SNAME,${MASKSIZE}${STATS})
   echo $TOTAL >> $dir/segstats/${ANIMID}_segstats_b.csv
 done
