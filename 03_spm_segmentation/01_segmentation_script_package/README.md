@@ -5,11 +5,11 @@ Scripts listed in this subdirectory were used to extract segment-wise informatio
 
 ## Example Folder/File Structure for Running  Measurement Scripts
 
-Below is an example of folder/file structure organization for the segmentation of Statistical Parametric Maps. Any deviation from this format will result in errors at some point throughout the segmentation processes. 
+Below is an example of folder/file structure organization for the segmentation of Statistical Parametric Maps. Any deviation from this format will result in errors at some point throughout the segmentation processes. Note that these functions are highly specific to the dataset used. Use of these scripts for your own analysis would require customization of Group/Condition identifiers in the input filenames and in the `segment_stats_*_v4.sh scripts`.  
 
 **Input:**
 
-Note that the type of SPM t-tests _(paired, post vs preMn; paired, post vs postMn; and unpaired, group 1 post vs group 2 postMn)_ need to be separated into different input folders as provided below. Further, the SPM NIfTI image filenames must follow the format `spmT_{Group}_{Condition}_T{t value}_P{p value}_C{cluster size}.nii`. 
+The type of SPM t-tests _(paired, post vs preMn; paired, post vs postMn; and unpaired, group 1 post vs group 2 postMn)_ need to be separated into different input folders as provided below. Further, the SPM NIfTI image filenames must follow the format `spmT_{Group}_{Condition}_T{t value}_P{p value}_C{cluster size}.nii`. 
 
 Lastly, both the _InVivo_ Atlas NIfTI file and CSV lookup table need to be within the main directory. 
 
