@@ -3,7 +3,7 @@
 ## Overview
 This section contains R markdown files used in the analysis of ROIs from MEMRI images and their correlations with measurements from  micrographs of c-fos+ stained cells. 
 
-Please see the Bearer Lab "ROI Measurement Repo" for more detailed information and instructions on use. Briefly, ROI anatomy is identified and notated manually by users, input images are organized in a directory. User-modified feeder script provides ROI information to subsequent scripts for intensity measurements and generation of a CSV file that compiles ROI information from across a large dataset of NIfTI images. For instance, in Fig. 3, we measured intensity statistics from 8 ROIs, in 23 mice separated into 2 groups (Std and ELA), and across 3 conditions (BL-PreMn, HC, and TMT). R Markdown files provide code used for data curation for statistical analysis and graphical visualization.
+Please see the **[Bearer Lab ROI Measurement Repo](https://github.com/bearerlab/memri-roi-measurement)** for more detailed information and instructions on use. Briefly, ROI anatomy is identified and notated manually by users, input images are organized in a directory. User-modified feeder script provides ROI information to subsequent scripts for intensity measurements and generation of a CSV file that compiles ROI information from across a large dataset of NIfTI images. For instance, in Fig. 3, we measured intensity statistics from 8 ROIs, in 23 mice separated into 2 groups (Std and ELA), and across 3 conditions (BL-PreMn, HC, and TMT). R Markdown files provide code used for data curation for statistical analysis and graphical visualization.
 
 **Associated Figures/Tables:**
 - Figure 3-4 (ROI comparisons of signal intensity magnitudes, and Comparisons to c-fos+ staining)
