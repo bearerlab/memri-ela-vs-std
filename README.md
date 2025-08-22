@@ -1,4 +1,4 @@
-# Code used for Processing and Analysis of Data in 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'
+# Code used for data processing and analysis in 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'
 
 Authors: Uselman, Taylor. W, Jacobs, Russell E., and Bearer, Elaine L.
 
