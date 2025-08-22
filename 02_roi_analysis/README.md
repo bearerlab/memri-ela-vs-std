@@ -1,7 +1,7 @@
 # Region of interest analysis of MEMRI signal intensities and c-fos IHC cell count data
 
 ## Overview
-This section contains scripts for ROI Measurements from MEMRI Images, and other scripts for the analysis of these images and correlations with c-fos+ staining in micrographs. 
+This section contains R markdown files used in the analysis of ROIs from MEMRI images and their correlations with measurements from  micrographs of c-fos+ stained cells. 
 
 **Associated Figures/Tables:**
 - Figure 3-4 (ROI comparisons of signal intensity magnitudes, and Comparisons to c-fos+ staining)
@@ -10,7 +10,7 @@ This section contains scripts for ROI Measurements from MEMRI Images, and other 
 
 ## Directory Structure
 
-Note: Files/Scripts listed below are placed in order of processing steps - intermingled between sub-directories, and not necessarily in alphanumeric order.
+Note: Files/Scripts listed below are placed in order of processing/analysis steps - intermingled between sub-directories, and not necessarily in alphanumeric order.
 
 ```
 02_roi_analysis/
@@ -29,7 +29,7 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 
 ### ROI Measurement Scripts (non-specific)
 
-For a general description of ROI measurement scripts, please see the following Bearer Lab GitHub repo...
+For a general description of ROI measurement scripts, please refer to the Bearer Lab GitHub repository.
 
 [ROI Scripts Repo](https://github.com/bearerlab/memri-roi-measurement)
 
