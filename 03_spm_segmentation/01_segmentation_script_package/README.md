@@ -1,3 +1,5 @@
 # Segmentation script package
 
-These are the scripts used to extract segment-wise information from Statistical Parametric Maps and output into a CSV file for subsequent analysis.
+Scripts listed in this subdirectory were used to extract segment-wise information from Statistical Parametric Maps that were output into a compiled CSV file for subsequent analysis in R.
+
+
