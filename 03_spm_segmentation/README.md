@@ -1,7 +1,9 @@
 # Segmentation of Statistical Maps of MEMRI Signal Intensities and Calculation of Fractional Volumes
 
 ## Overview
-This section contains scripts for segmenting MEMRI images, including mask generation and application, segment-wise statistical summaries (voxel counts), compilation of data, and graphing column graphs. Note that the feeder scripts are used throughout to organize subroutines.
+This section contains scripts for segmenting MEMRI images, including mask generation and application, segment-wise statistical summaries (voxel counts), compilation of data, and graphing column graphs. Note that the feeder scripts are used throughout to organize subroutines. 
+
+This version of our _InVivo_ Atlas segmentation utilizes FSL functions (fslmaths and fslstats). These scripts wrap FSL, bash, and Python in a way to mask the atlas; parse, mask and summarize SPM images; and compile output data for R analysis. 
 
 **Associated Figures/Tables:**
 - Figure 5-6 (Fractional Activation Volumes and Fractional Difference Volumes)
