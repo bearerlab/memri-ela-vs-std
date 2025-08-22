@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# Author: Taylor W. Uselman
+
 ############# This is a feeder code for both the segmentation and the ROI data ################
 #---------------------------------------------------------------------------------------------#
 ## dir = Segment_ROI main directory 
