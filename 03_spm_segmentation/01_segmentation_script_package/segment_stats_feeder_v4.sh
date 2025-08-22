@@ -12,11 +12,25 @@ sdir=$2
 
 # Within Group
 echo ""
-echo "Running Within Group SPM segmentation"
+echo "Running SPM segmentation for Post vs Pre-Mn(II) images"
 echo "Note ERROR:: messages occur for segments with no significant voxels"
 echo "Please ignore this error"
 
-FLIST=(`ls $dir/All_Within_SPMs/*/*.nii`) 
+FLIST=(`ls $dir/All_Within_SPMs/Post_vs_PreMn/*/*.nii`) 
+for ((n=0;n<${#FLIST[@]};n++));
+do
+	fname=${FLIST[$n]}
+	thr=$(echo $fname | grep -Po '(_T)\K\d+')
+	thr=$(echo "${thr:0:1}.${thr:1}")
+	$sdir/segment_stats_w_v4.sh $fname $thr $dir
+done
+
+echo ""
+echo "Running SPM segmentation for Post vs Post-Mn(II) images"
+echo "Note ERROR:: messages occur for segments with no significant voxels"
+echo "Please ignore this error"
+
+FLIST=(`ls $dir/All_Within_SPMs/Post_vs_PostMn/*/*.nii`) 
 for ((n=0;n<${#FLIST[@]};n++));
 do
 	fname=${FLIST[$n]}
