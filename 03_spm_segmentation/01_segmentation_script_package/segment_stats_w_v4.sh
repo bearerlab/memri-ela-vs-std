@@ -6,9 +6,10 @@
 
 # Inputs
 spm=$1 # SPM T-statistic image
-name=$(basename $spm)
 thr=$2 # threshold for T-values
 dir=$3 # primary working directory
+
+name=$(basename $spm)
 
 # Outputs
 echo "Segmenting ${name}..."
