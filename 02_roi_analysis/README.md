@@ -14,22 +14,14 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 
 ```
 02_roi_analysis/
-├── 01_roi_script_package/
-   ├── ROI_feeder.sh                   # A base 'Feeder' Script that was slightly modified for each ROI analysis below. The feeder script defines the locations/size of ROIs to be measured. 
-   ├── ROI.sh                          # Extracts ROI intensity information using FSL functions
-   ├── ROI_Compiler.sh                 # Compiles intermediate results into a CSV for subsequent analysis
-├── 02_SNR                             # Signal-to-Noise Ratio Analysis
-│  ├── ROI_feeder_snr.sh                    
+├── 01_SNR                             # Signal-to-Noise Ratio Analysis                
 │  └── SNR_memri_analysis.Rmd          # R markdown file for SNR Analysis
-├── 03_Fig3_memri                      # MEMRI Signal Intensities in Threat Responsive Regions
-│  ├── ROI_feeder_fig3.sh                    
+├── 02_Fig3_memri                      # MEMRI Signal Intensities in Threat Responsive Regions               
 │  └── Fig3_analysis.Rmd               # R markdown file for comparisons in Fig. 3
-├── 04_Fig4_memri_cfos_comparisons     # MEMRI SI measurements for comparison to c-fos
-│  ├── ROI_feeder_cfos.sh                    
+├── 03_Fig4_memri_cfos_comparisons     # MEMRI SI measurements for comparison to c-fos       
 │  ├── Fig4_cfos_analysis.Rmd          # R markdown file for comparisons in Fig. 4
 │  └── memri_test_retest_analysis.Rmd  # R markdown file for supplmental test-retest              
-└── 05_smoothing_effects               # MEMRI SIs as in 01_Fig3_memri but on smoothed images
-   ├── ROI_feeder_smooth.sh                                    
+└── 04_smoothing_effects               # MEMRI SIs as in 01_Fig3_memri but on smoothed images      
    └── smoothing_memri_analysis.Rmd    # R markdown file for SNR Analysis
 ```
 
@@ -37,53 +29,9 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 
 ### ROI Measurement Scripts (non-specific)
 
-#### `ROI_feeder.sh`
-**Purpose:** To feed input image information and ROI location to ROI.sh. 
+For a general description of ROI measurement scripts, please see the following Bearer Lab GitHub repo...
 
-**Dependencies:** None.
-
-**Usage:** ./ROI_feeder_{xx}.sh 
-
-**Inputs:** 
-  - Processed (intensity-normalized, anatomically-aligned) images, organized in an input sub-directory by Group and/or Condition (see protocol in Word Document for more)
-  - X-Y-Z voxel location, ROI size, input folder names, identification variables
-
-**Outputs:** Feeds the ROI location and metadata provided to ROI.sh for extraction
-
-#### `ROI.sh`
-**Purpose:** To measure signal intensities from MEMRI images based on ROI_feeder.sh. 
-
-**Dependencies:** FSL - fslroi, fslstats
-
-**Usage:** ./ROI.sh loc x y z sz fn lab1 lab2 lab3
-
-**Inputs:** 
- - loc = ROI location name/abbreviation
- - x = x coordinate
- - y = y coordinate
- - z = z coordinate
- - sz = size of cube - all should be 5x5x5 voxels
- - fn = image folder name within "InputImages" directory
- - lab1 = grouping variable #1
- - lab2 = grouping variable #2
- - lab3 = grouping variable #3
- - Processed (intensity-normalized, anatomically-aligned) images, organized in an input sub-directory by Group and/or Condition (see protocol in Word Document for more). Note that if these are not organized/named as in ./ROI_feeder_{xx}.sh (or visa versa) then there will be an error.
-
-**Outputs:**
-  - Signal intensity statistics from specified ROIs and image metadata in TXT files.
-  - ROI images for overlay on 3D images, if desired.
-
-#### `ROI_Compiler.sh`
-**Purpose:** To compile the TXT files created by ROI.sh into a single CSV file. 
-
-**Dependencies:** None.
-
-**Usage:** ./ROI_Compiler.sh {Output CSV name}.csv
-
-**Inputs:** 
-  - Desired filename for compiled CSV 
-
-**Outputs:** Signal intensity statistics from specified ROIs and image metadata in TXT files.
+[ROI Scripts Repo]()
 
 ### ROI Analysis Markdown Files 
 
