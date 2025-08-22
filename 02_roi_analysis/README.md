@@ -1,4 +1,4 @@
-# Region of Interest Analysis Comparisons between MEMRI and c-fos IHC
+# Region of interest analysis of MEMRI signal intensities and c-fos IHC cell count data
 
 ## Overview
 This section contains scripts for ROI Measurements from MEMRI Images, and other scripts for the analysis of these images and correlations with c-fos+ staining in micrographs. 
