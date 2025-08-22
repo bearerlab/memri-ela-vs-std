@@ -1,18 +1,14 @@
 #!/bin/bash
 
-# This scripts performs the segmentation of a SPM paired t-test image for a given segment, based on input from segment_stats_feeder_v4.sh.
+# Author: Taylor W. Uselman
+
+# This script performs the segmentation of an SPM paired t-test image for a given segment, based on input from segment_stats_feeder_v4.sh.
 
 # Inputs
-# $1 = contrast image of difference between gray scales of post and pre injection images
-# $2 = threshold for differences in gray scale between post injection and pre injection images
-# NOTE: we want to only see increases in signal intensity due to Mn2+ accumulation therefore the default threshold will be zero
-# $3 = primary directory
-
-spm=$1
+spm=$1 # SPM T-statistic image
 name=$(basename $spm)
-thr=$2
-#echo "T = ${thr}"
-dir=$3
+thr=$2 # threshold for T-values
+dir=$3 # primary working directory
 
 # Outputs
 # Total Volume of 
@@ -23,7 +19,6 @@ ANIMID=$(echo ${name:0:${#name}-4})
 
 # Setup output csv file header
 echo "SPM,Test,Tthresh,Pval,ELA,Time,SegName,Vox,Vol_mm,MeanT_thr,StDevT_thr,MinT_thr,MaxT_thr,SigVox,SigVol_mm,Cx,Cy,Cz" > $dir/segstats/${ANIMID}_segstats_w.csv
-#^ removed GENO from between ELA and Time
 
 if [[ $ANIMID == *"_S_"* ]]
 then
@@ -55,16 +50,7 @@ then
 else
   echo "T/P value not recognized"
 fi
-# # Genotype (WT/KO)
-#     if [[ $ANIMID == *"WT"* ]]
-#     then
-#         GENO="WT"
-#     elif [[ $ANIMID == *"KO"* ]]
-#     then
-#         GENO="KO"
-#     else
-#         echo "Genotype not recognized"
-#     fi
+
 # Condition
 if [[ $ANIMID == *"HC"* ]]
 then
@@ -94,7 +80,7 @@ do
   # Get Segmental Stats from TMap
   ## When performing normal analysis
   STATS=$(fslstats $spm -k $f -l $thr -n -M -S -R -V -C | tr ' ' ',')
-  # Push segmentation info into comma delimited csv file
+  # Push segmentation info into a comma-delimited CSV file
   TOTAL=$(echo $ANIMID,"Paired",$thr,$pval,$ELA,$TIME,$SNAME,${MASKSIZE}${STATS} | tr ' ' ',')
   echo $TOTAL >> $dir/segstats/${ANIMID}_segstats_w.csv
 done
