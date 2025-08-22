@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Author: Taylor W. Uselman
+
 # Inputs to this function are: 
 # $1 = primary directory
 # $2 = name of antaomtical region
