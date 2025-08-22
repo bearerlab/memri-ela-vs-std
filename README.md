@@ -1,4 +1,4 @@
-# Source code for 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'
+# Code used Processing and Analysis of Data in 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'
 
 Authors: Uselman, Taylor. W, Jacobs, Russell E., and Bearer, Elaine L.
 
@@ -18,3 +18,7 @@ Brief abstract/summary of the study
 - NiftyReg
 - Various R and Python Packages
 - [See Requirements Notes](requirements/requirements.md)
+
+Note that the code listed in this repository uses various software packages from R and Python, all of which have permissive licenses, as well as wrapper scripts for FSL, which has a unique non-commercial [license](https://fsl.fmrib.ox.ac.uk/fsl/docs/#/license). 
+
+## References
