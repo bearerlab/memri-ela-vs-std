@@ -20,8 +20,9 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
    ├── mask_creator_v4.sh              # This is the feeder script generated, which uses the mask_creation_v4 function/script to create a mask image from each segment. 
    ├── mask_creation_v4.sh             # Create the mask images for each segment based on InVivo Atlas CSV file info
    ├── segment_stats_feeder_v4.sh      # Feeder script that reads the names of SPM images in /Inputs/All_Within_Group/ and /Inputs/All_Between_Group/ subdirectories. The SPM file names have the format 'spmT_{Group}_{Condition}_T{Tval}-P{Pval}-C8.nii' This script reads the t-values for thresholding statistical maps for segmentation.
-   ├── segment_stats_w_v4.sh           # Extracts segment statistics from Paired T-test SPMs (within group SPMs)
-   ├── segment_stats_b_v4.sh           # Extracts segment statistics from Unpaired T-test SPMs (between group SPMs)
+   ├── segment_stats_w_v4.sh           # Extracts segment statistics from Paired T-test SPMs that compared post-Mn(II) to pre-Mn(II) image (within group)
+   ├── segment_stats_w_postMn_v4.sh    # Extracts segment statistics from Paired T-test SPMs that compare between post-Mn(II) images (within group)
+   ├── segment_stats_b_v4.sh           # Extracts segment statistics from Unpaired T-test SPMs (between-group SPMs)
    └── combine_v4.py                   # Compiles CSV output files generated for each SPM image into a single CSV file.
 ├── fracvol_graph.R                    # Function for graphing fractional volumes according to InVivo Atlas anatomical groupings.
 ├── 02_segmentation_analyses/                   
