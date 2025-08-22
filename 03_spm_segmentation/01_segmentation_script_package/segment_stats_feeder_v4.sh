@@ -36,7 +36,7 @@ do
 	fname=${FLIST[$n]}
 	thr=$(echo $fname | grep -Po '(_T)\K\d+')
 	thr=$(echo "${thr:0:1}.${thr:1}")
-	$sdir/segment_stats_w_v4.sh $fname $thr $dir
+	$sdir/segment_stats_w_postMn_v4.sh $fname $thr $dir
 done
 
 # Between Group
