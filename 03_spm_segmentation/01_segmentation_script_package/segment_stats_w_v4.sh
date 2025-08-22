@@ -11,9 +11,6 @@ thr=$2 # threshold for T-values
 dir=$3 # primary working directory
 
 # Outputs
-# Total Volume of 
-# volume of overlapped SPM and mask
-
 echo "Segmenting ${name}..."
 ANIMID=$(echo ${name:0:${#name}-4})
 
