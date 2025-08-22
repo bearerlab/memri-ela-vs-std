@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Author: Taylor W. Uselman
+
+# Inputs from feeder.sh
 # $1 = primary directory
 # $2 = scripts directory
 # $3 = InVivo Atlas CSV file
