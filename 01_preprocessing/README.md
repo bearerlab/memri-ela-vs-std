@@ -18,15 +18,9 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 └── memri_preprocessing/
     ├── Slice_Interpolation.m            # Interpolates slices with RF feedthrough artifacts
     ├── 01_Skull_Stripping/
-        ├── SkullStrip.sh                # Feeder/Organization Script
-        └── SkullStripper_v4.py          # Skull Stripping Function (NiftyReg dependencies)
+    │   └── See Bearer Lab GitHub Repo on Modal Scaling 
     ├── 02_Modal_Scaling/
-        ├── modal_scale_nii_int32.m      # Primary Modal Scaling Function
-        ├── find_hist.m                  # Helper functions to determine histograms, nonlinear 
-        ├── peakdet.m
-        ├── peakcostfn.m
-        ├── find_hist_data.m
-        └── padstring.m
+    │   └── See Bearer Lab GitHub Repo on Modal Scaling 
     ├── 03_Quality_Control/
         ├── snr_analysis.Rmd              # MR Signal-to-Noise (SNR) comparisons
         ├── average.sh                    # Visual Alignment Quality
@@ -94,9 +88,12 @@ Note: For measurements, see [/RegionOfInterest/README.md]{/RegionOfInterest/READ
     - Skull Stripped Images (a `Stripped` directory will be generated)
 
 #### `modal_scale_nii_int32.m` and others
+
+**[See Modal Scaling Bearer Lab GitHub Repo](https://github.com/bearerlab/modal-scaling/tree/main)**
+
 **Purpose:** To intensity normalize MEMRI images according to the modal intensity of a template.
 
-**Dependencies:** MATLAB/None.
+**Dependencies:** MATLAB
 
 **Usage:** Run in MATLAB. Use defaults for user input for _# bins_ and _delta_ values. 
 
