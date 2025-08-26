@@ -25,3 +25,23 @@ Please review each of the following subdirectories for more information on 1) ME
 Note that the code listed in this repository uses various software packages from R and Python, all of which have permissive licenses, as well as wrapper scripts for FSL, which has a unique non-commercial [license](https://fsl.fmrib.ox.ac.uk/fsl/docs/#/license). 
 
 ## References
+
+**FSL**
+
+[1.](https://pubmed.ncbi.nlm.nih.gov/19059349/)  M.W. Woolrich, S. Jbabdi, B. Patenaude, M. Chappell, S. Makni, T. Behrens, C. Beckmann, M. Jenkinson, S.M. Smith. Bayesian analysis of neuroimaging data in FSL. NeuroImage, 45:S173-86, 2009
+    
+[2.](https://pubmed.ncbi.nlm.nih.gov/15501092/)  S.M. Smith, M. Jenkinson, M.W. Woolrich, C.F. Beckmann, T.E.J. Behrens, H. Johansen-Berg, P.R. Bannister, M. De Luca, I. Drobnjak, D.E. Flitney, R. Niazy, J. Saunders, J. Vickers, Y. Zhang, N. De Stefano, J.M. Brady, and P.M. Matthews. Advances in functional and structural MR image analysis and implementation as FSL. NeuroImage, 23(S1):208-19, 2004
+    
+[3.](https://pubmed.ncbi.nlm.nih.gov/21979382/)  M. Jenkinson, C.F. Beckmann, T.E. Behrens, M.W. Woolrich, S.M. Smith. FSL. NeuroImage, 62:782-90, 2012
+
+**Nifty Reg**
+
+[4. ](https://doi.org/10.1016/S0262-8856(00)00052-4) Ourselin, et al. (2001). Reconstructing a 3D structure from serial histological sections. Image and Vision Computing, 19(1-2), 25–31.
+
+[5. ](https://pubmed.ncbi.nlm.nih.gov/26158035/) Modat, et al. (2014). Global image registration using a symmetric block-matching approach. Journal of Medical Imaging, 1(2), 024003–024003. doi:10.1117/1.JMI.1.2.024003
+
+[6. ](https://pmc.ncbi.nlm.nih.gov/articles/PMC3043828/) Rueckert, et al.. (1999). Nonrigid registration using free-form deformations: Application to breast MR images. IEEE Transactions on Medical Imaging, 18(8), 712–721. doi:10.1109/42.796284
+
+[7. ](https://pubmed.ncbi.nlm.nih.gov/19818524/) Modat, et al. (2010). Fast free-form deformation using graphics processing units. Computer Methods And Programs In Biomedicine,98(3), 278–284. doi:10.1016/j.cmpb.2009.09.002
+
+**R and Python Packages**
