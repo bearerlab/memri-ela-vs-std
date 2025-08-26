@@ -44,6 +44,7 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 
 **Outputs:** Behavioral analysis statistical reports and Figure 1B-D panels.
 
+
 ### MEMRI Preprocessing Scripts
 
 #### `slice_interpolation.m`
@@ -57,6 +58,7 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 
 **Outputs:** Slice interpolated images
 
+
 #### `snr_analysis.Rmd`
 **Purpose:** To check whether SNR and global Mn(II) dose effects are similar between groups. 
 
@@ -69,6 +71,7 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 **Outputs:** Slice interpolated images
 
 Note: For measurements, see [/RegionOfInterest/README.md]{/RegionOfInterest/README.md}
+
 
 #### `SkullStrip.sh` & `SkullStripper_v4.py`
 **Purpose:** To extract the brain from non-brain tissue 
@@ -84,6 +87,7 @@ Note: For measurements, see [/RegionOfInterest/README.md]{/RegionOfInterest/READ
 **Outputs:** 
     - Masks (a `Masks` directory will be generated)
     - Skull Stripped Images (a `Stripped` directory will be generated)
+
 
 #### `modal_scale_nii_int32.m` and others
 
@@ -103,6 +107,7 @@ Note: For measurements, see [/RegionOfInterest/README.md]{/RegionOfInterest/READ
     - Modally scaled images
     - Optional: PNGs of modally scaled histograms.
 
+
 #### `average.sh`, `jaccard_similarity.sh`, `jaccard_similarity.R`, and `mutual_information.R`
 **Purpose:** To quantify anatomical similarity after linear/non-linear alignments. 
 
@@ -118,6 +123,7 @@ Note: For measurements, see [/RegionOfInterest/README.md]{/RegionOfInterest/READ
 
 **Outputs:** Images for Fig. S2I, Jaccard Indices and Normalized Mutual Information Values and Fig. S2F.
 
+
 #### `roi_warped_v_smoothed.Rmd`
 **Purpose:** To determine if smoothing results in a difference/loss of information from MEMRI signal intensities. 
 
@@ -130,6 +136,7 @@ Note: For measurements, see [/RegionOfInterest/README.md]{/RegionOfInterest/READ
 **Outputs:** Fig. S6 graphs and statistical summaries.
 
 Note: For ROI measurements, see [/02_roi_analysis/](../02_roi_analysis/README.md)
+
 
 #### `avg_preMn_diff_adjustment.Rmd`
 **Purpose:** To adjust ELA post-Mn(II) images for pre-existing differences between groups' (ELA vs Std) pre-Mn(II) images. 
