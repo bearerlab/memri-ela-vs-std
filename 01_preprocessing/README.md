@@ -13,9 +13,9 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 
 ```
 01_preprocessing/
-├── behavioral_analysis/
+├── 01_behavioral_analysis/
 │   └── behavioral_analysis.Rmd          # Main behavioral processing and analysis
-└── memri_preprocessing/
+└── 02_memri_preprocessing/
     ├── Slice_Interpolation.m            # Interpolates slices with RF feedthrough artifacts
     ├── 01_Skull_Stripping/
     │   └── See Bearer Lab GitHub Repo on Modal Scaling 
