@@ -1,0 +1,673 @@
+---
+title: "Fig1_Behavior_RAnalysis"
+author: "Taylor W. Uselman"
+date: "OG: 07-15-2020  Modified: `r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_depth: 5
+    code_folding: show
+    df_print: paged
+    theme: cosmo
+    highlight: tango
+  pdf_document:
+    df_print: kable
+geometry: margin=0.25in
+always_allow_html: yes
+---
+
+
+# Global Code Options
+
+These options are used to format the HTML file and load the appropriate libraries
+
+```{R}
+knitr::opts_chunk$set(comment = NA, message = FALSE, warning = FALSE, width = 100)
+knitr::opts_chunk$set(fig.align = "center", fig.height = 16, fig.width = 16)
+knitr::opts_chunk$set(cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE)
+
+lib_ls <- c(
+  # Data processing
+  "tidyverse", 
+  # Data Visualization
+  "ggplot2",
+  "ggnewscale",
+  # Data Analysis
+  "nlme",
+  "emmeans"
+)
+lapply(lib_ls, require, character.only = T)
+```
+
+
+# Set Working Directory
+
+Directory location of RMD, HTML, and Output Images
+
+__Note: User input for working directory required below__
+
+```{R}
+wdir = ""
+setwd(wdir)
+```
+
+
+# Load Data Files
+
+## Raw Files
+
+### Raw Data Loading and Processing Function
+
+This custom _load.etvz.txt_ function loads the "Raw" data from Ethovision from .txt files. It requires data labels, which were manually generated in Excel. These label associates the data labeleling information for a given trial with the appropriate txt file. Below is the function code with "#" indicating in code comments.   
+
+```{R}
+# Raw Data Files
+library(tidyverse)
+###################################################################################################################
+### _load.etvz.txt_ ###
+### A function to load raw behavior data from Ethovision XT .txt files
+### Input required: 1) Path of files; 2) TXT file; 3) CSV of labels/groups (in the same file/trial order as .txt files in same folder)
+load.etvz.txt <- function(path = NULL, rawfilelist = NULL, df_labels = NULL
+                        , range = c(0.025,0.975), smooth = 3
+                        , direction = c("none","angle {numeric}","mirrorx","mirrory","mirrorboth")
+                        , abind = F) {
+    if (is.null(path) == T || is.null(rawfilelist) == T || is.null(df_labels) == T) {
+      stop("Data input is not complete. Verify 'path', 'rawfilelist', and 'df_labels' are all set")
+    }
+    cat("STEP 1: Pulling raw data from .txt files\n")
+    setwd(path)
+    datalist = lapply(rawfilelist, function(x) as.matrix(read.table(x, skip = 40,sep=";",na.strings=c("-","NA"))))
+    
+    cat("STEP 2: Forming dataframe list\n --- Interpolating, Smoothing, and Normalizing X and Y locations across animals\n")
+    ar = array(datalist)
+    ar2 = ar
+    cnt=1
+    for (i in 1:length(ar)) {
+      # print(i)
+      l=length(ar2[[i]][,1])
+      ar2[[i]] = cbind(df_labels[rep(i,l),],ar[[i]][,2:16],rep(cnt,l))
+      colnames(ar2[[i]])[7:22] = c("Time","X_Center","Y_Center"
+                                   ,"Area","AreaChange","Elongation"
+                                   ,"Distance","Velocity"
+                                   ,"Moving","NotMoving"
+                                   ,"HighlyMobile","Mobile","Immobile"
+                                   ,"Dark","Light"
+                                   ,"ID")
+      ar2[[i]] = ar2[[i]] %>% select(File,Trial,AnimID,ID,Timepoint,Geno,ELA,Time,X_Center,Y_Center
+                                    ,Area,AreaChange,Elongation
+                                    ,Distance,Velocity
+                                    ,Moving,NotMoving
+                                    ,HighlyMobile,Mobile,Immobile
+                                    ,Dark,Light) %>% mutate(
+                                                            Moving = factor(Moving, levels=c(0,1))
+                                                           ,NotMoving = factor(NotMoving, levels=c(0,1))
+                                                           ,HighlyMobile = factor(HighlyMobile, levels=c(0,1))
+                                                           ,Mobile = factor(Mobile, levels=c(0,1))
+                                                           ,Immobile = factor(Immobile, levels=c(0,1))
+                                                           ,Dark = factor(Dark, levels=c(0,1))
+                                                           ,Light = factor(Light, levels=c(0,1))
+                                      )
+            
+      
+      l = length(ar2[[i]][,9])
+      tmpx = ar2[[i]][,9]
+      tmpa = ar2[[i]][,11]
+      ## remove top and bottom percentiles according to "range" input
+      tmpx = ifelse(tmpx>quantile(tmpx,range[2],na.rm = T) | tmpx<quantile(tmpx,range[1],na.rm = T),NA,tmpx)
+      tmpa = ifelse(tmpa>quantile(tmpa,range[2],na.rm = T) | tmpa<quantile(tmpa,range[1],na.rm = T),NA,tmpa)
+      
+      ##  linear interpolation of NA values
+      tmpx = zoo::na.approx(tmpx, na.rm = FALSE, rule=2) # rule=2; anything outside range(tmpx) is extrapolated to min(tmpx) or max(tmpx)
+      tmpa = zoo::na.approx(tmpa, na.rm = FALSE, rule=2)
+      ## kernel smoothing across "bandwidth" consecutive time points --- {stats}
+      tmpx = ksmooth(1:l,tmpx,'normal',bandwidth=smooth,n.points=l)$y
+      tmpa = ksmooth(1:l,tmpa,'normal',bandwidth=smooth,n.points=l)$y
+      
+      tmpy = ar2[[i]][,10]
+      ## remove top and bottom percentiles according to "range" input
+      tmpy = ifelse(tmpy>quantile(tmpy,range[2],na.rm = T) | tmpy<quantile(tmpy,range[1],na.rm = T),NA,tmpy)
+      ##  linear interpolation of NA/missing values
+      tmpy = zoo::na.approx(tmpy,na.rm = FALSE,rule=2)
+      ## kernel smoothing across 10 consecutive time points
+      tmpy = ksmooth(1:l,tmpy,'normal',bandwidth=smooth,n.points=l)$y
+      
+      # Normalize Direction X and Y values to arena size
+      tmpx = ((tmpx - min(tmpx, na.rm=T))/(max(tmpx,na.rm=T) - min(tmpx,na.rm=T)))*40
+      tmpy = ((tmpy - min(tmpy, na.rm=T))/(max(tmpy,na.rm=T) - min(tmpy,na.rm=T)))*38
+      
+      # direction = "none" #"mirrorx"
+       ## Normalizing all X values to range 0 to 40cm and change direction
+      if (is.numeric(direction[1]) == T) {
+        # Xrot linear alegebra
+        # Yrot linear alegebra
+      } else if (direction[1] == "mirrorx") {
+        tmpx = (tmpx*-1) - min(tmpx*-1)
+      } else if (direction[1] == "mirrory") {
+        tmpy = (tmpy*-1) - min(tmpy*-1)
+      } else if (direction[1] == "mirrorboth") {
+        tmpx = (tmpx*-1) - min(tmpx*-1)
+        tmpy = (tmpy*-1) - min(tmpy*-1)
+      } else if (any(direction[1] == c("none","angle {numeric}","mirrorx","mirrory","mirrorboth")) == F) {
+        cat('Notice: directionality input not correct\nOptions: "none", angle{numeric type}, "mirrorx", "mirrory", or "mirrorboth"')
+        cat("Using 'none' as default\n")
+      } 
+      
+      if (any(is.na(cbind(tmpx,tmpy)))) { stop("NA's produced see x-y location code") }
+      
+      # Instantaneous Velocity / Change in Area is calculated as the change in positions/Area over time
+      vx = c(0,diff(tmpx)*ar2[[i]][1,8])
+      vy = c(0,diff(tmpy)*ar2[[i]][1,8])
+      vr = sqrt(vx^2 + vy^2)
+      da = c(0,diff(tmpa)*ar2[[i]][1,8])
+      # Instaneous distance traveled is calculated as the total velocity (x+y) divided by the time pas
+      dist = vr/0.033
+      
+      ar2[[i]] = cbind(ar2[[i]],tmpx,tmpy,vr,tmpa,da,dist)
+      colnames(ar2[[i]])[23:28] = c("X_Center_norm","Y_Center_norm","Velo","Area_calc","DeltaArea","Dist_calc")
+      if (abind == T){
+        cn = c(23:27,29)
+        ar2[[i]][,29] = as.numeric(ifelse(ar2[[i]][,23] > 13,1,0))
+        colnames(ar2[[i]])[29] = "LD"
+      }
+      cnt=cnt+1
+    }
+
+    cat("STEP 3: Unlisting into single dataframe\n")
+      for (i in 2:length(ar2)) {
+        if (i == 2) {
+          if (abind == F){
+            A = rbind(ar2[[i-1]],ar2[[i]])
+          } else if (abind == T) {
+            mindim <- which(c(dim(ar2[[i-1]])[1],dim(ar2[[i]])[1]) == min(c(dim(ar2[[i-1]])[1],dim(ar2[[i]])[1])))
+            A = abind::abind(ar2[[i-1]][1:min(c(dim(A)[1],dim(ar2[[i]])[1])),cn]
+                     ,ar2[[i]][1:min(c(dim(A)[1],dim(ar2[[i]])[1])),cn]
+                     ,along=3)
+          } else {
+            stop("abind option must be either TRUE/FALSE")
+          }
+        } else {
+          if (abind == F){
+            A = rbind(A,ar2[[i]])
+          } else if (abind == T) {
+            A = abind::abind(A[1:min(c(dim(A)[1],dim(ar2[[i]])[1])),,],ar2[[i]][1:min(c(dim(A)[1],dim(ar2[[i]])[1])),cn], along=3)
+          } else {
+            stop("abind option must be either TRUE/FALSE")
+          }
+        }
+      }
+
+    cat("Data loaded!")
+    return(A)
+}
+##################################################################################################################
+```
+
+### If .RData file has not yet been created
+
+When this Rmd file is originally ran, the code chunks below are needed to load and process the Noldus txt files appropriately. If these sections have already been used to load the data they should be commented out with "#" at the start of every line or else the data will be loaded all over again. This process can take a long time so it is best to do it once, unless the Ethovision txt files were updated or the loading/processing function is being looked at.
+
+#### Load Labels for function
+
+This code reads in the label XLSX files to assign to data frames that will be saved in an .RData file.
+
+```{R}
+# setwd(paste0(wdir,"/RawData/00_WT_NR/"))
+# rawfilelist_wtnr = list.files(pattern = "*.txt")
+# df_raw_wtnr <- data.frame(read.csv("EthoVisXT_RawBehData_WTNR.csv", header=TRUE)) %>% 
+#   mutate(ELA = factor(ELA, levels = c(0,1), labels = c("-ELA","+ELA"))
+#   )
+# setwd(paste0(wdir,"/RawData/02_WT_AR/"))
+# rawfilelist_wtar = list.files(pattern = "*.txt")
+# df_raw_wtar <- data.frame(read.csv("EthoVisXT_RawBehData_WTAR.csv", header=TRUE)) %>%
+#   mutate(ELA = factor(ELA, levels = c(0,1), labels = c("-ELA","+ELA"))
+#   )
+```
+
+#### Load Data 
+
+This code is the implementation of the above function to load and process the data. 
+
+__Note:__ Only use this code chunk if loading/processing the Raw EthoVision data for the first time.  
+
+_"df_wtnr"_ refers to Standard mice data
+_"df_wtar"_ refers to ELA mice data
+
+Note the options used:
+  _range_ = {0.025 - 0.975} -- this option removes potential movement outliers at the top and bottom 2.5 quantiles. This range is applied to X and Y positions and Area variables from the raw data.
+  _smooth_ = 10 -- this option sets the bandwidth for kernel smoothing. Thus, kernel smoothing is used over a period of ~10 video frames. This is a typical frame number used in Ethovision when smoothing data for analysis. The tracking can sometimes drift or be a little jumpy. The ksmooth function is only applied to X, Y, and Area variables.
+  _direction_ = "none" or "mirrorx" -- this option mirrors the ELA about the vertical axis to ensure the arena is the same orientation for both ELA and Std mice. 
+
+```{R}
+# ### Std
+# df_wtnr <- load.etvz.txt(path = paste0(wdir,"/RawData/00_WT_NR/"),
+#                          rawfilelist = rawfilelist_wtnr,
+#                          df_labels = df_raw_wtnr,
+#                          range = c(0.025,0.975), # Remove outliers from bottom 2.5% and top 2.5% of data
+#                          smooth = 10, # Smooth Data with spline smoothing across 10 time steps 0.033 s * 10 = 0.33 s = 330 ms
+#                          direction = "none")
+# df_wtnr <- df_wtnr %>% mutate(trialgroup = interaction(File,Trial, sep="_Trial") )
+# 
+# ### ELA
+# df_wtar <- load.etvz.txt(path = paste0(wdir,"/RawData/02_WT_AR/"),
+#                          rawfilelist = rawfilelist_wtar,
+#                          df_labels = df_raw_wtar,
+#                          range = c(0.025,0.975), # Remove outliers from bottom 2.5% and top 2.5% of data
+#                          smooth = 10, # Smooth Data with spline smoothing across 10 time steps 0.033 s * 10 = 0.33 s = 330 ms
+#                          direction = "mirrorx") # Arena was rotated 180 deg. This flips the direction back to that of the Normal datasets.
+# df_wtar <- df_wtar %>% mutate(trialgroup = interaction(File,Trial, sep="_Trial") )
+```
+
+#### Save .RData file
+
+```{R}
+# setwd(paste0(wdir,"/RawData/"))
+# save.image(file="./240417_EpochAnalysis.RData")
+```
+
+### If .RData file already exists
+
+Here the .RData file has already been generated, and the data initially loaded and processed. Upon subsequent runs/knits of this Rmd file, the above chunks should be commented, and the the chunk below be uncommented to load the pre-processed data in the .RData file.
+
+```{R}
+setwd(paste0(wdir,"/RawEthovisionData/"))
+# save.image(file="./240417_EpochAnalysis.RData")
+load("./240417_EpochAnalysis.RData")
+setwd(wdir)
+
+## This code combines the Standard and ELA data into a single data frame.
+df_comb <- rbind2(df_wtnr,df_wtar) %>%
+  mutate(
+    ELA = factor(ELA,
+                 levels=c("-ELA","+ELA"),
+                 labels=c("Normal","ELA")),
+    Timepoint = factor(Timepoint,
+                       levels=c("BL","BS","NO","PO","D6","D9","D23"),
+                       labels=c("BL","HC","NO","TMT","D6","D9","D23"))
+    # This sets the boundaries of light and dark sides of the arena according to normalized distances (values determined according to arena dimensions in cm)
+  , Lighttest = factor(ifelse(X_Center_norm > 12, 1, 0), levels=c(0,1), labels=c("Dark","Light"))
+   # Location of gauze pad (with saline or TMT) is similarly placed in the arena. These two various measure the distance from gauze at any moment, and whether the mouse is within 5cm of the gauze pad.
+  , Object_dist = sqrt((38-X_Center_norm)^2 + (19-Y_Center_norm)^2)
+  , Object_int = factor(ifelse(Object_dist < 5, 1, 0), levels=c(0,1))
+  ) %>%
+  group_by(AnimID) %>% mutate(
+    # Mobility (i.e., immobile or highly mobile) is determined by finding instances that fall within the  bottom and top 2.5% of velocity. Regular mobility is anything in between. These numbers are often used in Ethovision, but are adjustable to upwards of 10% on either side of the distribution - from what I have seen in the literature.
+    ImmobilityTest = factor(ifelse(Velo < quantile(Velo,0.025,na.rm = T),1,0)
+                       ,levels=c(0,1), labels=c("Immobile","Mobile")),
+    HighMobilityTest = factor(ifelse(Velo < quantile(Velo,0.975,na.rm = T),1,0)
+                       ,levels=c(0,1), labels=c("HighlyMobile","Mobile"))
+  ) %>% ungroup()
+```
+
+
+# Process Data Files
+
+## Set up Epoch and Moving Variables
+
+The raw data does not incorporate epoch information. Thus, I manually generate 1 minute epochs/intervals across the 10 minute recording. The time variable for each mouse categorized by which epoch it falls into at any point in time. 
+
+```{R}
+df_subset <- df_comb %>%
+  filter(Timepoint %in% c("BL","HC","TMT","D9"))
+
+minutes = seq(0,600,60)
+df_subset$Epoch <- factor(
+  cut(
+    df_subset$Time,
+    breaks = minutes,
+    include.lowest = T,
+    right = F
+    ),
+  levels = c("[0,60)","[60,120)","[120,180)","[180,240)","[240,300)",
+             "[300,360)","[360,420)","[420,480)","[480,540)","[540,600]"),
+  labels = 
+    seq(1,10,1)
+) 
+  
+
+# Moving and Not Moving factor variable generated from Raw binary data
+df_subset <- df_subset %>%
+  mutate(
+    NMtest = ifelse(Moving == "1" | NotMoving == "0", 1, ifelse(Moving == "0" | NotMoving == "1",0,NA)),
+    Ltest = ifelse(Light == "1" | Dark == "0", 1, ifelse(Light == "0" | Dark == "1",0,NA))
+    )
+```
+
+## Summarize Data by Mouse, Group, Condition, and Epoch.
+
+This summarization of the data was used for linear mixed-models analysis.
+
+```{R}
+df_subset_sum <- df_subset %>%
+  group_by(
+    AnimID,
+    ELA,
+    Timepoint,
+    Epoch
+  ) %>%
+  summarise(
+    # Total Distance travelled
+    SumDist = (sum(Dist_calc %>% as.numeric(), na.rm = T)),
+    # Total Time on Light Side
+    SumLight = sum((X_Center_norm > 14)/n()),
+  ) %>% 
+  na.omit() %>%
+  ungroup()
+df_subset_sum <- df_subset_sum %>%
+  mutate(
+    AnimID = factor(AnimID, levels = c("ELS_I_3","ELS_I_4","ELS_I_5","ELS_I_6","ELS_I_7","ELS_I_8",
+                                       "ELS_II_1","ELS_II_2","ELS_II_3","ELS_II_4","ELS_II_5","ELS_II_6",
+                                                         "PTSD_F","PTSD_G","PTSD_I","PTSD_K",
+                                       "PTSD_N","PTSD_P","PTSD_R","PTSD_T","PTSD_V","PTSD_X"))
+  )
+
+# Litter Variable Set up - this variable is according to MetaData on birthdata/shipping dates
+
+lit = c(1 ,2 ,2 ,2 ,2 ,2 ,
+        3 ,3 ,3 ,4 ,5 ,5 , 
+              7 ,8 ,8 ,8 ,
+        9 ,9 ,9 ,10,10,10)
+idlev = levels(df_subset_sum$AnimID)
+df_subset_sum$Litter <- NA
+for (l in 1:length(df_subset_sum$AnimID)) {
+  # l = 1
+  match(df_subset_sum$AnimID[l],idlev)
+  df_subset_sum$Litter[l] = lit[match(df_subset_sum$AnimID[l],idlev)]
+}
+df_subset_sum <- df_subset_sum %>%
+  mutate(
+    Litter = factor(Litter)
+  )
+```
+
+## Summarize Data by Group, Condition, and Epoch.
+
+This summarization was used for Fig. 1C to gain per epoch averages and standard deviation/error. 
+
+```{R}
+df_subset_sum2<- df_subset_sum %>%
+  group_by(
+    ELA,
+    Timepoint,
+    Epoch
+  ) %>%
+  summarise(
+    SumDist_sample = mean(SumDist, na.rm = T),
+    SD_SumDist = sd(SumDist, na.rm = T),
+    SEM_SumDist = SD_SumDist/sqrt(n()),
+    
+    SumLight_sample = mean(SumLight, na.rm = T),
+    SD_SumLight = sd(SumLight, na.rm = T),
+    SEM_SumLight = SD_SumLight/sqrt(n())
+  ) %>% na.omit() %>%
+  select(-c(SD_SumDist,SD_SumLight))
+
+```
+
+## Summarize Data by Mouse, Group, and Condition
+
+This summarization was used for Fig. 1B to gain per mouse values for percent of time spent in the light side of the arena, and to generate boxplots.
+
+```{R}
+df_subset_sum3 <- df_subset_sum %>%
+  group_by(
+    AnimID,
+    ELA,
+    Timepoint
+  ) %>% 
+  summarise(
+    SumDist = sum(SumDist),
+    PerLight = mean(SumLight)
+  ) %>%
+  filter(Timepoint %in% c("BL","TMT"))
+```
+
+# Plots
+
+## Plot Colors
+```{R}
+col_norm = "cyan4"
+col_ela =  "goldenrod3"
+col_bl = "gray50"
+col_tmt =  "tomato1" #"red1"
+```
+
+## Fig. 1C
+
+Distance traveled over time, comparing BL and TMT in both groups. Note, to save the output plot (as for publication), un-comment the "ggsave()" text at the bottom of this chunk (lines 513-517).
+
+```{R}
+df_plot = df_subset_sum2 %>% filter(Timepoint %in% c("BL","TMT"))
+p = ggplot(data = df_plot,
+           aes(
+             x = Epoch,
+             y = SumDist_sample,
+             color = Timepoint,
+             shape = ELA,
+             group = Timepoint,
+             alpha = Timepoint
+             )
+           ) + 
+  geom_line(linewidth=0.25) +
+  geom_point(size=1.25) +
+  geom_errorbar(
+      ymin = df_plot$SumDist_sample - df_plot$SEM_SumDist,
+      ymax = df_plot$SumDist_sample + df_plot$SEM_SumDist
+  ) +
+  facet_grid(. ~ ELA) +
+  scale_color_manual(values = c(col_bl,col_tmt)) +
+  scale_alpha_manual(values = c(1,1)) +
+  scale_y_continuous(limits = c(0,600),breaks=seq(0,600,100)) +
+  labs(
+    x = "Minute (of 10 min recording)",
+    y = "Total Distance Travelled (cm)"
+  ) +
+  theme_classic() +
+  theme(plot.title = element_blank()
+        , axis.title.x = element_blank()
+        , axis.text.x = element_text(size=6,family="sans",vjust=1,hjust=0.5)
+        , axis.title.y = element_blank()#text(hjust=1,size=9,family="sans")
+        , axis.text.y = element_text(size=6,family="sans")
+        , strip.background = element_blank()#rect(fill="grey90")
+        , strip.text = element_blank()#text(size=8,family="sans",face="bold")
+        , panel.grid.major.x = element_blank()
+        , panel.grid.major.y = element_blank()
+        , legend.position = "none")
+p
+# ggsave(filename="Fig1C.png"
+#        , plot=p
+#        , device="png"
+#        , path=paste0(wdir,"/Output_Images")
+#        , units="in", width=2.15, height=1.15, dpi=320)
+```
+
+Similar plot as Fig. 1C, but this time looking at time spent in the light. This was not used for publication.
+
+```{R}
+df_plot = df_subset_sum2 %>% filter(Timepoint %in% c("BL","TMT"))
+p = ggplot(data = df_plot,
+           aes(
+             x = Epoch,
+             y = SumLight_sample*100,
+             color = Timepoint,
+             shape = ELA,
+             group = Timepoint,
+             alpha = Timepoint
+             )
+           ) + 
+  geom_line(linewidth=0.5) +
+  geom_point(size=2) +
+  geom_errorbar(
+      ymin = (df_plot$SumLight_sample - df_plot$SEM_SumLight)*100,
+      ymax = (df_plot$SumLight_sample + df_plot$SEM_SumLight)*100
+  ) +
+  facet_grid(. ~ ELA) +
+  scale_color_manual(values = c(col_bl,col_tmt)) +
+  scale_alpha_manual(values = c(1,1)) +
+  scale_y_continuous(limits = c(0,1)*100,breaks=seq(0,1,0.25)*100) +
+  labs(
+    x = "Minute (of 10 min recording)",
+    y = "Percent of Time in Light (cm)"
+  ) +
+  theme_classic() +
+  theme(plot.title = element_blank()
+        , axis.title.x = element_blank()
+        , axis.text.x = element_text(angle=45,size=6,family="sans",vjust=0.9,hjust=0.75)
+        , axis.title.y = element_blank()
+        , axis.text.y = element_text(size=7,family="sans")
+        , strip.background = element_blank()
+        , strip.text = element_blank()
+        , panel.grid.major.x = element_blank()
+        , panel.grid.major.y = element_blank()
+        , legend.position = "none")
+p
+```
+
+## Fig. 1B - Percent of Time in Light
+
+Note: to save png file (as for publication) un-comment lines 598-602.
+
+```{R}
+df_plot <- df_subset_sum3 
+p = ggplot(data = df_plot,
+            aes(x = Timepoint, y=PerLight*100, fill=factor(Timepoint)))
+p = p + geom_boxplot(aes(color=factor(Timepoint)),
+                     position=position_dodge(0.75),width=0.8,
+                     outlier.shape = NA,alpha=0.15,linewidth=0.15)
+p = p + scale_fill_manual(values = c(col_bl, col_tmt))
+p = p + scale_color_manual(values = c(rep(col_bl,1),
+                                      rep(col_tmt,1),
+                                      rep(col_bl,1),
+                                      rep(col_tmt,1)))
+p = p + new_scale_color()
+p = p + geom_point(aes(color=factor(ELA)),
+                   size=0.40,alpha=1,position=position_dodge(0.75))
+p = p + scale_color_manual(values = c((col_norm),
+                                      (col_ela)))
+p = p + facet_grid(. ~ ELA)
+p = p + scale_y_continuous(limits = c(0,100), breaks = seq(0,100,25),expand=c(0,0,0,0))
+p = p + labs(title = "", x = "", y = "")
+p = p + theme_classic()
+p = p + theme(plot.title = element_blank()
+        , axis.title.x = element_blank()
+        , axis.text.x = element_blank()
+        , axis.ticks.x = element_blank()
+        , axis.title.y = element_blank()
+        , axis.text.y = element_text(size=6,family="sans")
+        , strip.background = element_blank()
+        , strip.text = element_blank()
+        , panel.grid.major.x = element_blank()
+        , panel.grid.major.y = element_blank()
+        , legend.position = "none")
+plot(p)
+# ggsave(filename="Fig1B.png"
+#        ,plot=p
+#        ,device="png"
+#        ,path=paste0(wdir,"/Output_Images")
+#        ,units="in", width=1.25, height=1.10, dpi=320)
+```
+
+Similar plot to that of Fig. 1B, but looking at distance traveled.
+
+```{R}
+p = ggplot(data = df_plot,
+            aes(x = Timepoint, y=SumDist, fill=factor(Timepoint)))
+p = p + geom_boxplot(aes(color=factor(Timepoint)),
+                     position=position_dodge(0.75),width=0.8,
+                     outlier.shape = NA,alpha=0.5,linewidth=0.1)
+p = p + scale_fill_manual(values = c(col_bl, col_tmt))
+p = p + scale_color_manual(values = c(rep(col_bl,1),
+                                      rep(col_tmt,1),
+                                      rep(col_bl,1),
+                                      rep(col_tmt,1)))
+p = p + new_scale_color()
+p = p + geom_point(aes(color=factor(ELA)),
+                   size=0.35,alpha=1,position=position_dodge(0.75))
+p = p + scale_color_manual(values = c((col_norm),
+                                      (col_ela)))
+p = p + facet_grid(. ~ ELA)
+p = p + scale_y_continuous(limits = c(0,5000), breaks = seq(1000,5000,1000),expand=c(0,0,0,0))
+p = p + labs(title = "", x = "", y = "")
+p = p + theme_classic()
+p = p + theme(plot.title = element_blank()
+        , axis.title.x = element_blank()
+        , axis.text.x = element_text(size=8,family="sans",face="bold",vjust=0.9,hjust=0.75)
+        , axis.title.y = element_blank()
+        , axis.text.y = element_text(size=8,family="sans",face="bold")
+        , strip.background = element_rect(fill="grey90")
+        , strip.text = element_text(size=8,family="sans",face="bold")
+        , panel.grid.major.x = element_blank()
+        , panel.grid.major.y = element_blank()
+        , legend.position = "none")
+plot(p)
+```
+
+# Statistical Analysis
+
+We are testing for differences in __outcome variables__ distance traveled (`SumDist`) and percent of time spent in the light (`SumLight`) according to __fixed (main) effects__ of Group (`ELA`), Condition (`Timepoint`), and Video `Epoch`, with a three way interaction between each. We "control" for nested __random effects__ of individual and litter/weaning cage. 
+
+After modeling the full interaction as above, we perform the following post-hoc tests...
+
+## Fig. 1B 
+
+  1) Two-sample t-test of between group differences in percent of time spent in the light at each condition, aggregated across epochs.
+  2) Paired t-tests of between condition differences in percent of time spent in the light at for each group, aggregated across epochs.
+
+```{R}
+# Percent of Time in Light (Fig. 1B)
+lme.out1 = lme(SumLight ~ ELA*Timepoint*Epoch, random=(~1|Litter/AnimID), 
+              data = df_subset_sum %>% filter(Timepoint %in% c("BL","TMT"))
+                )
+summary(lme.out1)
+BIC(lme.out1)
+anova(lme.out1,type="marginal")
+effectsize::eta_squared(lme.out1)
+
+# Two-sample t-test, aggregating across epochs - Fig. 1B
+cout1 = emmeans(lme.out1, specs = c("ELA"),by=c("Timepoint"))
+cpairs1 = (cout1 %>% pairs(adjust="none"))
+t.stats1 = cpairs1 %>% as.data.frame() %>% 
+  mutate(
+    p.fdr = p.adjust(p.value,method="fdr") %>% round(.,5), # FDR adjustment for multiple comparisons
+    p.value = round(p.value,5), 
+    CohD = effectsize::t_to_d(abs(t.ratio),20)$d %>% round(.,2) # Cohen's D using the two-sample Degrees of Freedoms n1+n2-2
+    )
+t.stats1
+
+# Paired t-test, aggregating across epochs - Fig. 1B
+cout2 = emmeans(lme.out1, specs = c("Timepoint"), by=c("ELA"))
+cpairs2 = (cout2 %>% pairs(adjust="none"))
+t.stats2 = cpairs2 %>% as.data.frame() %>% 
+  mutate(
+    p.fdr = p.adjust(p.value,method="fdr") %>% round(.,5), # FDR adjustment for multiple comparisons
+    p.value = round(p.value,5),
+    # Cohen's D using the paired Degrees of Freedoms n1 or n2
+    CohD = effectsize::t_to_d(abs(t.ratio),ifelse(ELA=="ELA",12,10),paired = T)$d %>% round(.,2))
+t.stats2
+```
+
+## Fig. 1B 
+
+  3) Paired t-tests of between condition differences in distance traveled at each epoch for each group.
+
+```{R}
+# Distance Traveled (Fig. 1B)
+lme.out2 = lme(SumDist ~ ELA*Timepoint*Epoch, random = (~1|Litter/AnimID), 
+              data = df_subset_sum %>% filter(Timepoint %in% c("BL","TMT"))
+                )
+summary(lme.out2)
+BIC(lme.out2)
+anova(lme.out2,type="marginal")
+effectsize::eta_squared(lme.out2)
+
+# Paired t-test at each epoch for each group - Fig. 1B
+cout3 = emmeans(lme.out2, specs = c("Timepoint"), by=c("Epoch","ELA"))
+cout3 %>% pairs(adjust="none") %>% as.data.frame() %>% 
+  mutate(
+    p.fdr = p.adjust(p.value,method="fdr") %>% round(.,5), # FDR adjustment for multiple comparisons
+    p.value = round(p.value,5),
+    # Cohen's D using the paired Degrees of Freedoms n1 or n2
+    CohD = effectsize::t_to_d(abs(t.ratio),ifelse(ELA=="ELA",12,10),paired = T)$d %>% round(.,2)
+    )
+```
