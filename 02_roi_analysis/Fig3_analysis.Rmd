@@ -1,0 +1,626 @@
+---
+title: "Fig. 3 ROI Analysis"
+author: "Taylor W. Uselman"
+date: "Original Date: 04/09/2024, Last Modified Date: `r format(Sys.time(), '%B %d, %Y')`"
+output:
+  pdf_document:
+    df_print: kable
+  html_document: 
+    toc: true
+    number_sections: true
+    toc_depth: 5
+    code_folding: show
+    theme: cerulean #spacelab yeti united cosmo | #prettydoc::html_pretty cayman tactile architect leonids hpstr
+    highlight: tango
+fontsize: 12pt
+geometry: margin=0.25in
+always_allow_html: yes
+---
+
+```{R setup, include=FALSE}
+# Format RMarkdown Parameters
+knitr::opts_chunk$set(comment = NA, message = FALSE, warning = FALSE, width = 100)
+knitr::opts_chunk$set(fig.align = "center", fig.height = 5, fig.width = 12) # 4" x 8" unless otherwise specific
+knitr::opts_chunk$set(cache = TRUE) # cache = FALSE may be needed, but be aware... this document will take a very long time to knit.
+knitr::opts_chunk$set(echo = TRUE) # Code output is echoed/output immediately after the code in the .html file.
+
+
+wdir <- "Local Directory" # User input required
+setwd(paste0(wdir,"/R_Analysis"))
+
+dat_dir = paste0(wdir,"/OutputData/")
+res_dir = paste0(wdir,"/R_Analysis/Results")
+img_dir = paste0(wdir,"/R_Analysis/Images")
+
+dir_today = "Today's Date '/YYMMDD' " # User input required
+
+img_dir =paste0(img_dir,dir_today)
+res_dir =paste0(res_dir,dir_today)
+
+```
+
+
+```{R}
+# Data Processing
+library(openxlsx)
+library(tidyverse)
+library(reshape2)
+
+# Data Graphics
+library(ggplot2)
+library(gridExtra)
+library(corrplot)
+library(RColorBrewer)
+
+# Data Analysis
+library(nlme) # Non-linear Mixed Effects Models
+library(car) # Diagnostics
+library(emmeans) # Post-hoc pair-wise t-tests from NLME output, with multiple comparisons correction
+
+source("./ada_functions.R") #Functions for assessing model residuals
+```
+
+
+# Load and Process Data
+
+```{R}
+filename <- "240531-2_ELA_PTSD_ROI.csv"
+header <- c("IMAGE","ROI"
+           ,c("ELA","Condition") ### USER INPUT NEEDED
+           ,"HEMI","MEAN","SD","BLANK") 
+
+dat_ela_roi = read.csv2(paste0(dat_dir,"/",filename)
+                      ,header = F
+                      ,na.strings = NA
+                      ,sep = ","
+                      ,col.names = header)
+
+dat_ela_roi = dat_ela_roi[,-8] 
+  # FORMAT DATA FRAME
+  dat_ela_roi <- dat_ela_roi %>%
+    mutate(
+      Condition = factor(
+        Condition,
+        levels = c("BL","HC","TMT","D9")),
+      ELA = factor(
+        ELA,
+        levels = c("PTSD","ELA"),
+        labels = c("Std","ELA")),
+      ROI = factor(ROI,
+                   levels = c("MOB-e","MOB-n","AON","PIR",
+                              "MEA","CEA","BLA",
+                              "NDB","ACB","LSr","SPA"),
+                   labels = c("dlOB-DII","mOB-DII","AON","PIR",
+                              "MEA","CEA","BLA",
+                              "PVH",
+                              "NDB","ACB","LSr","SPA")),
+      HEMI = factor(HEMI, levels=c("Left","Right"),labels=c("L","R")),
+      NUM = factor(parse_number(IMAGE)),
+      MEAN = as.numeric(MEAN),
+      SD = as.numeric(SD)
+    ) %>% 
+    group_by(
+        ROI,
+        Condition,
+        HEMI
+    ) %>%
+    mutate(
+      ID = factor(1:n())
+    ) %>% 
+    ungroup() %>%
+    group_by(
+      ID,
+      ROI,
+      HEMI
+    ) %>%
+    mutate(
+        MEAN_BL = (MEAN/MEAN[Condition == "BL"]) - 1
+    ) %>% 
+    ungroup() %>%
+    group_by(
+      ELA,
+      Condition,
+      ROI,
+      HEMI
+    ) %>%
+    mutate(
+      Num = factor(1:n())
+    ) %>%
+    ungroup() %>%
+    select(ID,Num,ELA,Condition,ROI,HEMI,MEAN_BL,MEAN) %>%
+    mutate(
+      Cohort = ifelse(ELA == "ELA" & Num %in% levels(Num)[1]    , "C1", 
+               ifelse(ELA == "ELA" & Num %in% levels(Num)[2:6]  , "C2", 
+               ifelse(ELA == "ELA" & Num %in% levels(Num)[7:9]  , "C3", 
+               ifelse(ELA == "ELA" & Num %in% levels(Num)[10]   , "C4", 
+               ifelse(ELA == "ELA" & Num %in% levels(Num)[11:12], "C5",
+               ifelse(ELA == "Std" & Num %in% levels(Num)[1]    , "C6", 
+               ifelse(ELA == "Std" & Num %in% levels(Num)[2:3]  , "C7", 
+               ifelse(ELA == "Std" & Num %in% levels(Num)[4:6]  , "C8", 
+               ifelse(ELA == "Std" & Num %in% levels(Num)[7:9]  , "C9", 
+               ifelse(ELA == "Std" & Num %in% levels(Num)[10:12], "C10",
+                      NA)))))))))),
+      Cohort = factor(Cohort)
+    )
+
+# Set Color Scheme
+col_norm = "cyan4"
+col_ela =  "goldenrod3"
+col_hc = "blue1"
+col_tmt =  "red1"
+col_d9 = "limegreen" 
+  
+# subset
+dat_ela_roi_sub <- dat_ela_roi %>% 
+  filter((Condition == "HC" | Condition == "TMT"),
+         ROI %in% c("dlOB-DII","AON","PIR",
+                    "MEA","CEA","BLA",
+                    "mOB-DII","NDB","ACB","LSr","SPA")) %>%
+  mutate(Condition = droplevels.factor(Condition), ROI = droplevels.factor(ROI))
+```
+
+
+# Fig. 3A.
+
+```{R}
+dat_ela_roi_sub1 <- dat_ela_roi_sub %>% 
+  filter(ELA %in% c("ELA"),
+         (Condition == "HC" | Condition == "TMT"),
+         ROI %in% c("dlOB-DII","AON","PIR","CEA")) %>% 
+  mutate(Condition = droplevels.factor(Condition), ELA = droplevels.factor(ELA), ROI = droplevels.factor(ROI)) %>%
+  select(ID, Cohort, ELA, Condition, ROI, HEMI, MEAN_BL) %>%
+  group_by(ID, Cohort, ELA, Condition, ROI) %>%
+  reframe(
+    MEAN_BL = mean(MEAN_BL)
+  )
+
+
+dat_ela_roi_sum = dat_ela_roi_sub1 %>% 
+  group_by(ELA, Condition, ROI) %>%
+  reframe(
+    M = mean(MEAN_BL),
+    SD = sd(MEAN_BL),
+    SEM = SD / sqrt(n())
+  ) %>% ungroup()
+
+dat_ela_roi_sub1.1 = dat_ela_roi_sub1 %>% filter(ELA == "ELA") %>%
+  group_by(Condition,ROI) %>%
+  mutate(
+    q1  = quantile(MEAN_BL,0.25),
+    q3  = quantile(MEAN_BL,0.75),
+    iqr = q3-q1,
+    lbound = q1 - 1.5*iqr,
+    ubound = q3 + 1.5*iqr,
+    outlier = ifelse((MEAN_BL > ubound) | (MEAN_BL < lbound), 1, 0)) %>%
+  ungroup() %>%
+  group_by(ID) %>%
+  mutate(outlier2 = ifelse(sum(outlier) > 0, 1, 0)) %>%
+  ungroup() %>%
+  filter(outlier2 == 0)
+
+dat_ela_roi_sub1.1 %>% group_by(ROI,Condition) %>% reframe(n = n())
+```
+
+
+## Boxplots
+
+```{R,fig.height = 5, fig.width = 12}
+
+# Averaged across HEMISPHERE
+## MEAN_BL
+if (!dir.exists(img_dir)) {dir.create(img_dir)}
+if (!dir.exists(paste0(img_dir,"/Boxplots"))) {dir.create(paste0(img_dir,"/Boxplots"))}
+
+minplot = floor(min(dat_ela_roi_sub1.1$MEAN_BL)*100)
+maxplot = ceiling(max(dat_ela_roi_sub1.1$MEAN_BL)*100)
+
+## MEAN_BL
+dir_tmp = "250624_Fig3A_E_HCvTMT_reviews"
+
+# Boxplot + Dot +/- Error Bar (standard deviation)
+p = ggplot(data = dat_ela_roi_sub1.1 %>% filter(ELA %in% c("ELA")),
+            aes(x=factor(ROI), y=MEAN_BL*100,fill=factor(Condition)))
+p = p + geom_boxplot(position=position_dodge(0.75),width=0.5,
+                     outlier.shape = NA, coef = 0, 
+                     aes(color=Condition),alpha=0.05,size=0.1)
+p = p + stat_summary(fun.y = "mean", geom = "point", aes(color = Condition),
+                     position = position_dodge(0.75), size = 1) +
+        stat_summary(
+          aes(color = Condition),
+          fun.data = mean_sdl,
+          fun.args = list(mult = 1), 
+          geom = "errorbar",
+          width = 0.2,
+          linewidth = 0.3,
+          position = position_dodge(0.75))
+p = p + geom_point(size=0.4,alpha=1,position=position_dodge(0.75), color=col_ela) 
+p = p + geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, linewidth=0.5)
+p = p + scale_fill_manual(values=c(col_hc, col_tmt))
+p = p + scale_color_manual(values=c(col_hc, col_tmt))
+p = p + scale_y_continuous(limits = c(-8,30), breaks = seq(-5,25,5),expand=c(0,0,0,0))
+p = p + labs(title = ""
+           ,x = ""
+           ,y = "")
+p = p + theme_classic()
+p = p + theme(plot.title = element_blank()
+              , axis.title.x = element_blank()
+              , axis.text.x = element_blank()
+              , axis.title.y = element_blank()
+              , axis.text.y = element_text(size=8,family="sans")
+              , axis.ticks.x = element_blank()
+              , legend.position = "none")
+plot(p)
+ggsave(filename=paste0(dir_tmp,"_BoxPlotSummary.png")
+       ,plot=p
+       ,device="png"
+       ,path=paste0(img_dir,"/BoxPlots")
+       ,units="in", width=3.8, height=1.2, dpi=320)
+
+```
+
+## Paired T-tests
+
+__Assumptions:__
+
+1. Sampling distribution of residuals (paired differences) are approximately Normal. We check for this manually by visualizing  bootstrap resampled distribution (Nboot = 10,000), relative to a Normal distribution. 
+
+No major deviations from normal, i.e., skewness, kurtotic, outliers, were found.
+
+```{R}
+if (!dir.exists(res_dir)) {dir.create(res_dir)}
+
+cnt=1
+for (i in 1:length(levels(dat_ela_roi_sub1$ROI))) {
+  # i=1
+  roi = levels(dat_ela_roi_sub1$ROI)[i]
+
+  dftmp = dat_ela_roi_sub1 %>%
+    filter(ROI == roi,ELA == "ELA")
+  
+  e.hc  = dftmp %>% filter(Condition == "HC")  %>% arrange(ID) %>% pull(MEAN_BL)
+  e.tmt = dftmp %>% filter(Condition == "TMT") %>% arrange(ID) %>% pull(MEAN_BL)
+
+  ns = length(e.hc)
+  
+  bs_one_samp_dist(e.hc)
+  bs_one_samp_dist((e.tmt))
+  
+  one.samp1 =
+    t.test(
+      x = e.hc,
+      alternative = "greater"
+      )
+  stdev1 = one.samp1$stderr * sqrt(ns)
+  esz1 = abs(as.vector(one.samp1$estimate)) / stdev1
+  
+  one.samp2 =
+    t.test(
+      x = e.tmt,
+      alternative = "greater"
+      )
+  stdev2 = one.samp2$stderr * sqrt(ns)
+  esz2 = abs(as.vector(one.samp2$estimate)) / stdev2
+
+  # ELA HC vs TMT
+  results =
+    t.test(
+      x = e.tmt,
+      y = e.hc,
+      paired = T,
+      var.equal = vareq
+      )
+  stdev3 = results$stderr * sqrt(ns)
+  esz3 = as.vector(abs(results$estimate)) / stdev3
+    
+  if (cnt == 1) {
+    df.ttest = data.frame(
+      "ROI" = rep(roi,3),
+      "Comparison" = c("ELA-HC > 0","ELA-TMT > 0","ELA-HC vs ELA-TMT"),
+      "MeanDiff" = round(c(as.vector(one.samp1$estimate[1]),
+                           as.vector(one.samp2$estimate[1]),
+                           as.vector(results$estimate[1])),5),
+      "StDevDiff" = round(c(stdev1,
+                            stdev2,
+                            stdev3),5),
+      "Cohen.D" =  round(c(esz1,
+                           esz2,
+                           esz3),2),
+      "P.value" = round(c(one.samp1$p.value,
+                          one.samp2$p.value,
+                          results$p.value),5)
+    )
+  } else {
+    df.temp = data.frame(
+      "ROI" = rep(roi,3),
+      "Comparison" = c("ELA-HC > 0","ELA-TMT > 0","ELA-HC vs ELA-TMT"),
+      "MeanDiff" = round(c(as.vector(one.samp1$estimate[1]),
+                           as.vector(one.samp2$estimate[1]),
+                           as.vector(results$estimate[1])),5),
+      "StDevDiff" = round(c(stdev1,
+                            stdev2,
+                            stdev3),5),
+      "Cohen.D" =  round(c(esz1,
+                           esz2,
+                           esz3),2),
+      "P.value" = round(c(one.samp1$p.value,
+                          one.samp2$p.value,
+                          results$p.value),5)
+    )
+    df.ttest = rbind.data.frame(df.ttest,df.temp)
+  }
+  cnt=cnt+1
+}
+
+df.ttest = df.ttest %>%
+  group_by(Comparison) %>%
+  mutate(
+    P.value.fdr = group_by(across(P.value, ~p.adjust(P.value, method="fdr"))) %>% 
+      pull(P.value) %>% 
+      round(.,5)
+  ) %>% ungroup() %>%
+  mutate(
+    Comparison = factor(Comparison,
+                        levels = c("ELA-HC > 0","ELA-TMT > 0","ELA-HC vs ELA-TMT"),
+                        labels = c("HC > pre-Mn(II)","TMT > pre-Mn(II)","TMT > HC"))
+  )
+
+df.ttest %>% kableExtra::kable()
+```
+
+# Fig. 3B
+
+## Data Subset
+
+```{R}
+dat_ela_roi_sub3 <- dat_ela_roi_sub %>% 
+  filter(((Condition == "HC") & (ELA %in% c("Std","ELA"))) | ((Condition == "TMT") & (ELA %in% c("Std"))),
+          ROI %in% c("mOB-DII","ACB","LSr","NDB"),#,"CEA","SPA"),
+          ID != 10) %>% 
+  mutate(Condition = droplevels.factor(Condition),
+         ELA = droplevels.factor(ELA),ROI = droplevels.factor(ROI)
+         ) %>%
+  select(ID, Cohort, ELA, Condition, ROI, HEMI, MEAN_BL) %>%
+  group_by(ID, Cohort, ELA, Condition, ROI) %>%
+  reframe(
+    MEAN_BL = mean(MEAN_BL)
+  )
+```
+
+
+## Boxplots
+
+```{R,fig.height = 5, fig.width = 12}
+# Averaged across HEMISPHERE
+## MEAN_BL
+if (!dir.exists(img_dir)) {dir.create(img_dir)}
+if (!dir.exists(paste0(img_dir,"/Boxplots"))) {dir.create(paste0(img_dir,"/Boxplots"))}
+
+minplot = floor(min(dat_ela_roi_sub3$MEAN_BL)*100)
+maxplot = ceiling(max(dat_ela_roi_sub3$MEAN_BL)*100)
+
+## MEAN_BL
+library(ggnewscale)
+
+dir_tmp = "250624_Fig3B_SvE_reviews"
+# Plot #1: Std HC vs ELA HC
+p = ggplot(data = dat_ela_roi_sub3 %>% filter(Condition == "HC"),
+           aes(x=factor(ROI), y=MEAN_BL*100, fill=Condition)) +
+  geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, linewidth=0.5) +
+  geom_boxplot(aes(color=interaction(ROI,Condition,ELA),fill=Condition),
+               position=position_dodge(0.75),width=0.5,
+               outlier.shape = NA, coef = F, alpha=0.05,size=0.1) +
+  scale_fill_manual(values = c(col_hc)) +
+  scale_color_manual(values = 
+                     c(
+                       rep(col_hc ,8)
+                       )
+                   ) +
+  new_scale_color() +
+  stat_summary(
+    aes(group = ELA),
+    color = col_hc,
+    fun.y = "mean", geom = "point",
+    position = position_dodge(0.75),
+    size = 1) +
+  stat_summary(
+    aes(group = ELA),
+    color = col_hc,
+    fun.data = mean_sdl,
+    fun.args = list(mult = 1), 
+    geom = "errorbar",
+    width = 0.2,
+    linewidth = 0.3,
+    position = position_dodge(0.75)) +
+  geom_point(aes(color=factor(interaction(ROI,Condition,ELA))),
+             size=0.4,alpha=1,position= position_dodge(0.75)) + 
+  scale_color_manual(values = c(rep(col_norm,4),
+                                rep(col_ela,4))) +
+  scale_y_continuous(limits = c(-8,30), breaks = seq(-5,25,5),expand=c(0,0,0,0)) +
+  labs(title = "", x = "", y = "") +
+  theme_classic() +
+  theme(plot.title = element_blank()
+        , axis.title.x = element_blank()
+        , axis.text.x = element_blank()
+        , axis.title.y = element_blank()
+        , axis.text.y = element_text(size=8,family="sans")
+        , axis.ticks.x = element_blank()
+        , legend.position = "none")
+plot(p)
+ggsave(filename=paste0(dir_tmp,"_BoxPlotSummary.png")
+       ,plot=p
+       ,device="png"
+       ,path=paste0(img_dir,"/BoxPlots")
+       ,units="in", width=3.8, height=1.2, dpi=320)
+```
+
+## Paired and Unpaired T-tests
+
+__Paired T-test Assumptions:__
+
+1. Sampling distribution of residuals (paired differences) are approximately Normal. We check for this manually by visualizing  bootstrap resampled distribution (Nboot = 10,000), relative to a Normal distribution. 
+
+No major deviations from normal, i.e., skewness, kurtotic, outliers, were found.
+
+__Two Sampel T-test Assumptions:__
+
+1. Sampling distribution of the two populations are approximately Normal. We check for this manually by visualizing  bootstrap resampled distributions (Nboot = 10,000), relative to a Normal distribution. 
+
+No major deviations from normal, i.e., skewness, kurtotic, outliers, were found.
+
+2. Variance: The assumption of equal variance is true for the student's t-test. We perform a Levene's Test for inhomogeneity of variance. We use a p-value < 0.1 as the decision point for a deviation from this assumption. 
+
+If p <= 0.1, we use a Welch's t-test (Satterthwaite pooled variance, assuming non-equal variances.
+If p > 0.1, we use a typical student's t-test, assuming equal variance.
+
+```{R}
+if (!dir.exists(res_dir)) {dir.create(res_dir)}
+
+cnt=1
+for (i in 1:length(levels(dat_ela_roi_sub3$ROI))) {
+  # i=1
+  roi = levels(dat_ela_roi_sub3$ROI)[i]
+
+  dftmp = dat_ela_roi_sub3 %>%
+    filter(ROI == roi,Condition == "HC")
+  
+  s.hc  = dftmp %>% filter(ELA == "Std") %>% pull(MEAN_BL)
+  e.hc = dftmp %>% filter(ELA == "ELA") %>% pull(MEAN_BL)
+
+  ns = length(s.hc)
+  ne = length(e.hc)
+  
+  dftmp = data.frame(
+    "Fct" = factor(c(rep("Std-HC",ns),rep("ELA-HC",ne)),levels=c("Std-HC","ELA-HC")),
+    "MEAN_BL" = c(s.hc,e.hc)
+  )
+
+  bs_one_samp_dist(s.hc)
+  bs_one_samp_dist((e.hc))
+  
+  one.samp1 =
+    t.test(
+      x = s.hc,
+      alternative = "greater"
+      )
+  stdev1 = one.samp1$stderr * sqrt(ns)
+  esz1 = abs(as.vector(one.samp1$estimate)) / stdev1
+
+  one.samp2 =
+    t.test(
+      x = e.hc,
+      alternative = "greater"
+      )
+  stdev2 = one.samp2$stderr * sqrt(ne)
+  esz2 = abs(as.vector(one.samp2$estimate)) / stdev2
+
+  lv.out = leveneTest(MEAN_BL ~ Fct, data = dftmp)$`Pr(>F)`[1]
+  if (lv.out <= 0.1) {
+    vareq = F
+    test = paste0("Welch_lavp=",round(lv.out,3))
+  } else {
+    vareq = T
+    test = paste0("Student_lavp=",round(lv.out,3))
+  }
+  
+  bs_two_samp_diff_dist(s.hc,e.hc)
+
+  # ELA HC vs TMT
+  results =
+    t.test(
+      x = e.hc,
+      y = s.hc,
+      paired = F,
+      var.equal = vareq
+      )
+  if (vareq == T) {
+    # Student's T-test method for pooling SD
+    # stdev3 = results$stderr * sqrt((ns*ne)/(ns+ne))
+    stdev3 = sqrt(((ns-1)*sd(s.hc)^2 + (ne-1)*sd(e.hc)^2)/(ns+ne-2))
+  } else {
+    # Bonne Method for pooling SD for data with unequal variance (heteroscedastic)
+    stdev3 = sqrt((sd(e.hc)^2 + sd(s.hc)^2)/2)
+    #Average SD as from Bonett 2008 - https://www.ncbi.nlm.nih.gov/pubmed/18557680
+  }
+  
+  esz3 = as.vector(abs(diff(results$estimate))) / stdev3
+  # rstatix::cohens_d(MEAN_BL ~ Fct, data = dftmp, var.equal = vareq)$effsize %>% abs()
+  #Average SD as from Bonett 2008 - https://www.ncbi.nlm.nih.gov/pubmed/18557680
+  
+  if (cnt == 1) {
+    df.ttestB = data.frame(
+      "ROI" = rep(roi,3),
+      "Test" = c("Student-Paired","Student-Paired",test),
+      "Comparison" = c("Std-HC > 0","ELA-HC > 0","Std-HC vs ELA-HC"),
+      "MeanDiff" = round(c(as.vector(one.samp1$estimate[1]),
+                           as.vector(one.samp2$estimate[1]),
+                           as.vector(results$estimate[1]-results$estimate[2])),5),
+      "StDevDiff" = round(c(stdev1,
+                            stdev2,
+                            stdev3),5),
+      "Cohen.D" =  round(c(esz1,
+                           esz2,
+                           esz3),2),
+      "P.value" = round(c(one.samp1$p.value,
+                          one.samp2$p.value,
+                          results$p.value),5)
+    )
+  } else {
+    df.temp = data.frame(
+      "ROI" = rep(roi,3),
+      "Test" = c("Student-Paired","Student-Paired",test),
+      "Comparison" = c("Std-HC > 0","ELA-HC > 0","Std-HC vs ELA-HC"),
+      "MeanDiff" = round(c(as.vector(one.samp1$estimate[1]),
+                           as.vector(one.samp2$estimate[1]),
+                           as.vector(results$estimate[1]-results$estimate[2])),5),
+      "StDevDiff" = round(c(stdev1,
+                            stdev2,
+                            stdev3),5),
+      "Cohen.D" =  round(c(esz1,
+                           esz2,
+                           esz3),2),
+      "P.value" = round(c(one.samp1$p.value,
+                          one.samp2$p.value,
+                          results$p.value),5)
+    )
+    df.ttestB = rbind.data.frame(df.ttestB,df.temp)
+  }
+  cnt=cnt+1
+}
+
+df.ttestB = df.ttestB %>%
+  group_by(Comparison) %>%
+  mutate(
+    P.value.fdr = group_by(across(P.value, ~p.adjust(P.value, method="fdr"))) %>% 
+      pull(P.value) %>% 
+      round(.,5)
+  ) %>% ungroup() %>%
+  mutate(
+    Comparison = factor(Comparison,
+                        levels = c("Std-HC > 0","ELA-HC > 0","Std-HC vs ELA-HC"),
+                        labels = c("Std-HC > pre-Mn(II)","ELA-HC > pre-Mn(II)","ELA-HC vs Std-HC"))
+  )
+
+df.ttestB %>% kableExtra::kable()
+```
+
+
+### XSLX OUTPUT
+
+```{R}
+dir_tmp = "250624_Fig3A-B_reviews"
+if (!file.exists(paste0(res_dir,"/",dir_tmp,".xlsx"))) {
+  wb <- createWorkbook()
+  addWorksheet(wb, "Fig3A")
+  addWorksheet(wb, "Fig3B")
+  writeDataTable(wb
+               , sheet = "Fig3A"
+               , df.ttest
+               , colNames = T)
+  writeDataTable(wb
+               , sheet = "Fig3B"
+               , df.ttestB
+               , colNames = T)
+  saveWorkbook(wb, file = paste0(res_dir,"/",dir_tmp,".xlsx"), overwrite = T)
+}
+```
+
