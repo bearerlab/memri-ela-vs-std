@@ -18,7 +18,7 @@ Note: Files/Scripts listed below are placed in order of processing/analysis step
 02_roi_analysis/
 ├── SNR_memri_analysis.Rmd          # R markdown file for Signal-to-Noise Ratio Analysis
 ├── Fig3_analysis.Rmd               # R markdown file for comparisons in Fig. 3
-├── Fig4_cfos_analysis.Rmd          # R markdown file for comparisons in Fig. 4
+├── Fig4_analysis.Rmd          # R markdown file for comparisons in Fig. 4
 └── memri_test_retest_analysis.Rmd  # R markdown file for supplmental test-retest  
 ```
 
