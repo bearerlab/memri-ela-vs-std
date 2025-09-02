@@ -50,9 +50,9 @@ The masks directory contains the generated anatomical masks used for segmentatio
 │  ├── spmT_EgtS_HC_T172-P05-C8.nii
 │  ├── spmT_EgtS_TMT_T172-P05-C8.nii
 │  ├── spmT_EgtS_D9_T172-P05-C8.nii
-│  ├── spmT_EgtS_HC_T172-P05-C8.nii
-│  ├── spmT_EgtS_TMT_T172-P05-C8.nii
-│  └── spmT_EgtS_D9_T172-P05-C8.nii
+│  ├── spmT_EltS_HC_T172-P05-C8.nii
+│  ├── spmT_EltS_TMT_T172-P05-C8.nii
+│  └── spmT_EltS_D9_T172-P05-C8.nii
 ├── scripts/
 │  ├── feeder.sh
 │  ├── create_mask_feeder.sh
