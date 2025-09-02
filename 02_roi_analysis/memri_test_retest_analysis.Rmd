@@ -1,0 +1,909 @@
+---
+title: "ELA vs Normal -- c-fos vs MEMRI Comparison"
+subtitle: "v2-No Whole-head Rigid Body, Warped Images"
+author: "Taylor W. Uselman"
+date: "Original Date: 04/10/2024, Last Modified Date: `r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document: 
+    toc: true
+    number_sections: true
+    toc_depth: 5
+    code_folding: show
+    theme: cerulean
+    highlight: tango
+  pdf_document:
+    df_print: kable
+fontsize: 12pt
+geometry: margin=0.25in
+always_allow_html: yes
+---
+
+```{R setup, include=FALSE}
+#### Format RMarkdown Parameters
+knitr::opts_chunk$set(comment = NA, message = FALSE, warning = FALSE, width = 100)
+knitr::opts_chunk$set(fig.align = "center", fig.height = 5, fig.width = 12) #### 4" x 8" unless otherwise specific
+knitr::opts_chunk$set(cache = FALSE) #### cache = FALSE may be needed, but be aware... this document will take a very long time to knit.
+knitr::opts_chunk$set(echo = TRUE) #### Code output is echoed/output immediately after the code in the .html file.
+wdir <- "E://Taylor_Uselman/ELS_PTSD/IP_Data/01_Data_Processing/240102_Reprocessing_PreMnImages/10-2_ROI_Analysis/240409-v2_c-fos-warped"
+setwd(wdir)
+
+#### ROI Input Data Directory
+dat_dir = paste0(wdir,"/OutputData")
+
+#### Processed Data Directory
+res_dir = paste0(wdir,"/R_Analysis/Results")
+
+#### Graphs/Figures Directory
+img_dir = paste0(wdir,"/R_Analysis/Images")
+if (!dir.exists(img_dir)) {dir.create(img_dir)}
+if (!dir.exists(paste0(img_dir,"/Boxplots"))) {dir.create(paste0(img_dir,"/Boxplots"))}
+
+version = 1
+output_prefix = paste0(format(Sys.time(), '%y%m%d'),"-v",version)
+anyfiles = list.files(path = paste0(img_dir,"/Boxplots"), pattern = output_prefix)
+while ((length(anyfiles)>0) == T){
+  version = version + 1
+  output_prefix = paste0(format(Sys.time(), '%y%m%d'),"-v",version)
+  anyfiles = list.files(path = paste0(img_dir,"/Boxplots"), pattern = "output_prefix")
+}
+
+#### Libraries needed
+#### citation() --> use this to determine citations for each package
+
+#### Data Processing
+library(openxlsx)
+library(tidyverse)
+library(reshape2)
+
+#### Data Graphics
+library(ggplot2)
+library(ggnewscale)
+library(gridExtra)
+library(corrplot)
+library(RColorBrewer)
+library(gridGraphics)
+library(ggpubr)
+
+#### Data Analysis
+library(nlme) #### Non-linear Mixed Effects Models
+library(lme4) #### Linear Mixed Effect Models and Generalized Linear Models
+library(car) #### Diagnostics
+library(emmeans) #### Post-hoc pair-wise t-tests from NLME output, with multiple comparisons correction
+
+source(paste0(wdir,"/R_Analysis/","ada_functions.R"))
+
+#### Set Color Scheme
+col_norm = "cyan4"
+col_ela =  "goldenrod3"
+col_d9 = "limegreen"
+```
+
+# Summary {.tabset .tabset-fade .tabset-pills}
+
+## MEMRI Subset 1 {.tabset .tabset-fade .tabset-pills}
+
+### Load and Process Data {.tabset .tabset-fade .tabset-pills}
+
+#### Load Data
+```{R}
+filename <- "ELA_Normal_cfos_ROI.csv"
+header <- c("IMAGE","ROI"
+           ,c("ELA","Condition","VoxelNum") ############ USER INPUT NEEDED
+           ,"MEAN","BLANK") 
+
+dat_cfos_roi = read.csv2(paste0(dat_dir,"/",filename)
+                      ,header = F
+                      ,na.strings = NA
+                      ,sep = ","
+                      ,col.names = header)
+```
+
+#### Process Data
+
+```{R}
+dat_cfos_roi = dat_cfos_roi[,-which(colnames(dat_cfos_roi) == "BLANK")] 
+
+  #### FORMAT DATA FRAME
+  dat_cfos_roi <- dat_cfos_roi %>%
+    mutate(
+      Condition = factor(
+        Condition,
+        levels = c("D9")),
+      ELA = factor(
+        ELA,
+        levels = c("ELA","Normal"),
+        labels = c("ELA","Normal")),
+      ROI = factor(ROI,
+                   levels = c("CS","MB","HYP","THA"),
+                   labels = c("CS","MB","HYP","THA")
+                   ),
+      ID = factor(parse_number(IMAGE)),
+      VoxelNum = factor(VoxelNum),
+      MEAN = as.numeric(MEAN)
+    ) %>%
+    arrange(ROI,ELA,Condition,VoxelNum) %>%
+    group_by(
+      Condition,
+      ROI,
+      VoxelNum
+    ) %>%
+    mutate(
+      AnimNum = factor(1:n())
+    ) %>%
+    ungroup() %>%
+    select(AnimNum,VoxelNum,ELA,Condition,ROI,MEAN) %>%
+    filter(
+      AnimNum %in% c(1:6,13,14,15,17,18) # Subset 1
+    )
+  
+Group_Intensity_Summary <- dat_cfos_roi %>% 
+  filter(ROI %in% c("CS","MB","HYP","THA"),
+         Condition == "D9") %>% 
+  group_by(ELA) %>% 
+  summarize(
+    m = mean(MEAN) %>% round(.,2),
+    s = sd(MEAN) %>% round(.,2),
+    cov = s/m
+    )
+  
+knitr::kable(summary(dat_cfos_roi))
+str(dat_cfos_roi)
+
+
+dat_cfos_roi_sub <- dat_cfos_roi %>%
+  filter(Condition == "D9",
+         ROI %in% c("CS","MB","HYP","THA")) %>%
+  mutate(
+    Condition = droplevels.factor(Condition),
+    ROI = droplevels.factor(ROI)
+  )
+
+knitr::kable(summary(dat_cfos_roi_sub))
+unique(dat_cfos_roi_sub$AnimNum)
+```  
+
+
+
+### Analysis {.tabset .tabset-fade .tabset-pills}
+
+#### Graph Pairwise Comparisons Plots
+
+```{R, fig.height = 5, fig.width = 6}
+#### Box Plot
+######## MEAN_BL
+p1 = ggplot(data = dat_cfos_roi_sub %>% filter(ROI %in% c("CS","MB"), ELA == "ELA"),
+            aes(x=factor(ROI), y=MEAN/1000, color=factor(ELA), fill=factor(ELA)))
+p1 = p1 + geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, linewidth=0.5)
+p1 = p1 + geom_point(size=0.35, alpha=0.75)#### position=position_dodge(0.75)
+p1 = p1 + geom_boxplot(width=0.65, outlier.shape=NA, alpha=0.25, size=0.25) ####position=position_dodge(0.75)
+p1 = p1 + scale_fill_manual(values = c(col_ela))#, col_norm))
+p1 = p1 + scale_color_manual(values = c(col_ela))#, col_norm))
+p1 = p1 + scale_y_continuous(limits=c(5,11), breaks=seq(5,11,1), expand=c(0,0,0,0))
+# p = p + facet_grid(. ~ ELA)
+p1 = p1 + labs(title = "", x = "", y = "")
+p1 = p1 + theme_classic()
+p1 = p1 + theme(plot.title = element_blank()
+              , axis.title.x = element_blank()
+              , axis.text.x = element_text(angle=45,size=8,family="sans",face="bold",vjust=0.9,hjust=0.75)
+              , axis.title.y = element_blank()#text(hjust=1,size=9,family="sans")
+              , axis.text.y = element_text(size=8,family="sans",face="bold")
+              , strip.background = element_rect(fill="grey90")
+              , strip.text = element_text(size=8,family="sans",face="bold")
+              , panel.grid.major.x = element_blank()
+              , panel.grid.major.y = element_blank()#element_line(color="grey75", linewidth = 0.25, linetype=2)
+              ##, panel.grid.minor.y = element_blank()
+              , legend.position = "none")
+# p1
+ggsave(filename=paste0(output_prefix,"_ELA_cfos_CS-MB_MEAN_box_n6.png")
+       ,plot=p1
+       ,device="png"
+       ,path=paste0(img_dir,"/BoxPlots")
+       ,units="in", width=0.75, height=1.45, dpi=320)
+
+p2 = ggplot(data = dat_cfos_roi_sub %>% filter(ROI %in% c("CS","MB"), ELA == "Normal"),
+            aes(x=factor(ROI), y=MEAN/1000, color=factor(ELA), fill=factor(ELA)))
+p2 = p2 + geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, linewidth=0.5)
+p2 = p2 + geom_point(size=0.35, alpha=0.75)#### position=position_dodge(0.75)
+p2 = p2 + geom_boxplot(width=0.65, outlier.shape=NA, alpha=0.25, size=0.25) ####position=position_dodge(0.75)
+p2 = p2 + scale_fill_manual(values = c(col_norm))#col_ela, col_norm))
+p2 = p2 + scale_color_manual(values = c(col_norm))#col_ela, col_norm))
+p2 = p2 + scale_y_continuous(limits=c(5,11), breaks=seq(5,11,1), expand=c(0,0,0,0))
+# p = p + facet_grid(. ~ ELA)
+p2 = p2 + labs(title = "", x = "", y = "")
+p2 = p2 + theme_classic()
+p2 = p2 + theme(plot.title = element_blank()
+              , axis.title.x = element_blank()
+              , axis.text.x = element_text(angle=45,size=8,family="sans",face="bold",vjust=0.9,hjust=0.75)
+              , axis.title.y = element_blank()#text(hjust=1,size=9,family="sans")
+              , axis.text.y = element_text(size=8,family="sans",face="bold")
+              , strip.background = element_rect(fill="grey90")
+              , strip.text = element_text(size=8,family="sans",face="bold")
+              , panel.grid.major.x = element_blank()
+              , panel.grid.major.y = element_blank()#element_line(color="grey75", linewidth = 0.25, linetype=2)
+              ##, panel.grid.minor.y = element_blank()
+              , legend.position = "none")
+# p2
+ggsave(filename=paste0(output_prefix,"_Normal_cfos_CS-MB_MEAN_box_n6.png")
+       ,plot=p2
+       ,device="png"
+       ,path=paste0(img_dir,"/BoxPlots")
+       ,units="in", width=0.75, height=1.45, dpi=320)
+
+
+
+
+p3 = ggplot(data = dat_cfos_roi_sub %>% filter(ROI %in% c("HYP","THA"), ELA == "ELA"),
+            aes(x=factor(ROI), y=MEAN/1000, color=factor(ELA), fill=factor(ELA)))
+p3 = p3 + geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, linewidth=0.5)
+p3 = p3 + geom_point(size=0.35, alpha=0.75)#### position=position_dodge(0.75)
+p3 = p3 + geom_boxplot(width=0.65, outlier.shape=NA, alpha=0.25, size=0.25) ####position=position_dodge(0.75)
+p3 = p3 + scale_fill_manual(values = c(col_ela))
+p3 = p3 + scale_color_manual(values = c(col_ela))
+p3 = p3 + scale_y_continuous(limits=c(5,11), breaks=seq(5,11,1), expand=c(0,0,0,0))
+# p1 = p1 + facet_grid(. ~ ELA)
+p3 = p3 + labs(title = "", x = "", y = "")
+p3 = p3 + theme_classic()
+p3 = p3 + theme(plot.title = element_blank()
+              , axis.title.x = element_blank()
+              , axis.text.x = element_text(angle=45,size=8,family="sans",face="bold",vjust=0.9,hjust=0.75)
+              , axis.title.y = element_blank()#text(hjust=1,size=9,family="sans")
+              , axis.text.y = element_text(size=8,family="sans",face="bold")
+              , strip.background = element_rect(fill="grey90")
+              , strip.text = element_text(size=8,family="sans",face="bold")
+              , panel.grid.major.x = element_blank()
+              , panel.grid.major.y = element_blank()#element_line(color="grey75", linewidth = 0.25, linetype=2)
+              ##, panel.grid.minor.y = element_blank()
+              , legend.position = "none")
+# p3
+ggsave(filename=paste0(output_prefix,"_ELA_cfos_HYP-THA_MEAN_box_n6.png")
+       ,plot=p3
+       ,device="png"
+       ,path=paste0(img_dir,"/BoxPlots")
+       ,units="in", width=0.75, height=1.45, dpi=320)
+
+
+p4 = ggplot(data = dat_cfos_roi_sub %>% filter(ROI %in% c("HYP","THA"), ELA == "Normal"),
+            aes(x=factor(ROI), y=MEAN/1000, color=factor(ELA), fill=factor(ELA)))
+p4 = p4 + geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, linewidth=0.5)
+p4 = p4 + geom_point(size=0.35, alpha=0.75)#### position=position_dodge(0.75)
+p4 = p4 + geom_boxplot(width=0.65, outlier.shape=NA, alpha=0.25, size=0.25) ####position=position_dodge(0.75)
+p4 = p4 + scale_fill_manual(values = c(col_norm))
+p4 = p4 + scale_color_manual(values = c(col_norm))
+p4 = p4 + scale_y_continuous(limits=c(5,11), breaks=seq(5,11,1), expand=c(0,0,0,0))
+# p1 = p1 + facet_grid(. ~ ELA)
+p4 = p4 + labs(title = "", x = "", y = "")
+p4 = p4 + theme_classic()
+p4 = p4 + theme(plot.title = element_blank()
+              , axis.title.x = element_blank()
+              , axis.text.x = element_text(angle=45,size=8,family="sans",face="bold",vjust=0.9,hjust=0.75)
+              , axis.title.y = element_blank()#text(hjust=1,size=9,family="sans")
+              , axis.text.y = element_text(size=8,family="sans",face="bold")
+              , strip.background = element_rect(fill="grey90")
+              , strip.text = element_text(size=8,family="sans",face="bold")
+              , panel.grid.major.x = element_blank()
+              , panel.grid.major.y = element_blank()#element_line(color="grey75", linewidth = 0.25, linetype=2)
+              ##, panel.grid.minor.y = element_blank()
+              , legend.position = "none")
+# p4
+ggsave(filename=paste0(output_prefix,"_Normal_cfos_HYP-THA_MEAN_box_n6.png")
+       ,plot=p4
+       ,device="png"
+       ,path=paste0(img_dir,"/BoxPlots")
+       ,units="in", width=0.75, height=1.45, dpi=320)
+
+grid.arrange(grobs = list(p1, p2, p3, p4), nrow=2, ncol=2)
+```
+
+#### Mixed Effect Models {.tabset .tabset-fade .tabset-pills}
+
+__Model Setup:__ A repeated measures ANOVA (mixed effects model) will be used for all analyses.
+
+Mixed Effect Model with Compound Symmetry in covariance matrix assumed. (Random intercept/Repeated Measure ANOVA).
+
+__Model:__
+
+$$
+  Y_{ij} = (\mu_0 + \alpha_j) + (S_i + e_{ij})
+$$
+
+Where fixed effects are `ROI` and `ELA`, and random effects are `Animal` and `Voxel Number`.
+
+Random effects here are used to control for Animal-to-Animal and Voxel-to-Voxel variance separately. 
+
+##### Assessing Residuals 
+
+```{R, fig.height = 4, fig.width = 6}
+dir_tmp = paste0(output_prefix,"_cfos_ROI_analysis_MEAN_n6")
+
+if (!dir.exists(paste0(img_dir,"/Residuals/"))) {dir.create(paste0(img_dir,"/Residuals"))}
+if (!dir.exists(paste0(img_dir,"/Residuals/",dir_tmp))) {dir.create(paste0(img_dir,"/Residuals/",dir_tmp))}
+
+  lme.n.mte.rma <- lme(MEAN ~ ROI
+                     , random = list((~1|AnimNum),(~1|VoxelNum))
+                     , method = "REML"
+                     , data = dat_cfos_roi_sub %>% filter(ELA %in% c("Normal"))
+  )
+  
+  lme.e.mte.rma <- lme(MEAN ~ ROI
+                     , random = list((~1|AnimNum),(~1|VoxelNum))
+                     , method = "REML"
+                     , data = dat_cfos_roi_sub %>% filter(ELA %in% c("ELA"))
+  )
+  
+  
+  for (group in c("ELA","Normal")) {
+    if (group == "ELA"){
+      lm.tmp = lme.e.mte.rma
+    } else {
+      lm.tmp = lme.n.mte.rma
+    }
+    
+    cnt=1
+    for (res in 1:dim(lm.tmp$residuals)[2]) {
+      #### Residual Effect Type
+      print(restype <- colnames(lm.tmp$residuals)[res])
+      #### QQ Plot
+      qqPlot(lm.tmp$residuals[,res], main=paste0("QQPlot for ",restype," in ", group))
+      jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/",output_prefix,"QQnorm_",restype,"-",group,"_n6.jpeg"),
+         width = 4, height = 4, units = "in", res = 300)
+      qqPlot(lm.tmp$residuals[,res], main=paste0("QQPlot for ",restype," in ", group))
+      dev.off()
+      ######## Bootstrapped Sampling Distribution of Residuals
+      jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/",output_prefix,"BootStrappedSampDist_",restype,"-",group,"_n6.jpeg"),
+         width = 4, height = 4, units = "in", res = 300)
+      bs_one_samp_dist(lm.tmp$residuals[,res])
+      dev.off()
+      #### Variance of Residuals by Fitted
+      plot(lm.tmp$fitted[(1:dim(lm.tmp$residuals)[1])*cnt], lm.tmp$residuals[,res],
+              main=paste0(restype," in", group, " Residuals by Fitted"))
+      jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/",output_prefix,"InHVar_Fitted",restype,"-",group,"_n6.jpeg"),
+           width = 4, height = 4, units = "in", res = 300)
+      plot(lm.tmp$fitted[(1:dim(lm.tmp$residuals)[1])*cnt], lm.tmp$residuals[,res],
+              main=paste0(restype," in", group, " Residuals by Fitted"))
+      dev.off()
+      #### Variance Plot by ROI
+      plot(lm.tmp$data$ROI, lm.tmp$residuals[,res],
+           main=paste0(restype," in", group," Residuals by ROI"))
+      jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/",output_prefix,"InHVar_ROI",restype,"-",group,"_n6.jpeg"),
+           width = 4, height = 4, units = "in", res = 300)
+      plot(lm.tmp$data$ROI, lm.tmp$residuals[,res],
+           main=paste0(restype," in", group," Residuals by ROI"))
+      dev.off()
+      cnt=cnt+1
+    }
+  }
+```
+
+##### Results of Linear Model and Post-Comparisons
+
+```{R}
+# ANOVA Results
+  print("ELA")
+  print(a.e.res <- Anova(lme.e.mte.rma, type="III"))
+  print("Normal")
+  print(a.n.res <- Anova(lme.n.mte.rma, type="III"))  
+
+# Post-hoc Tests
+## ELA
+  #### Contrast Family ####1: Withing Group Differences between ROIs
+  cont.cfos.e <- emmeans(lme.e.mte.rma, specs = "ROI")#, by = c("ELA"))
+  ######## Calculate T/P-values
+  results_cfos1 = cont.cfos.e %>% pairs(adjust = "none") %>% data.frame()
+  ######## FDR Adjustment of P-values for Family of Pairwise Comparisons
+  results_cfos1$p.value.fdr = ((cont.cfos.e %>% pairs(adjust = "fdr")) %>% as.data.frame())$p.value
+  ######## Calculcate Cohen's D
+  results_cfos1$CohD = abs(effectsize::t_to_d(as.data.frame(pairs(cont.cfos.e))$t.ratio,  
+                                    rep(6,6),
+                                    paired = T)$d
+                 )
+  ######## Update Data frame Results Output  
+  results_cfos1 <- results_cfos1 %>%
+    mutate(
+      MeanDiff = (estimate) %>% round(.,2),
+      SE = (SE) %>% round(.,2),
+      T.value = round(t.ratio,2),
+      CohD = round(CohD,2),
+      P.value = round(p.value,5),
+      P.value.fdr = round(p.value.fdr,5),
+      SigLevel = ifelse(P.value.fdr > 0.1, "n.s.",
+                        ifelse(P.value.fdr > 0.05, "~",
+                               ifelse(P.value.fdr > 0.01, "*",
+                                      ifelse(P.value.fdr > 0.001, "**", "***"))))
+    ) %>%
+    select(contrast,MeanDiff,SE,df,T.value,CohD,P.value,P.value.fdr,SigLevel)
+  knitr::kable(results_cfos1, caption = "MEMRI MEAN Differences between ROIs within ELA")  
+  
+  
+## Normal
+  #### Contrast Family ####1: Withing Group Differences between ROIs
+  cont.cfos.n <- emmeans(lme.n.mte.rma, specs = "ROI")#, by = c("ELA"))
+  ######## Calculate T/P-values
+  results_cfos2 = cont.cfos.n %>% pairs(adjust = "none") %>% data.frame()
+  ######## FDR Adjustment of P-values for Family of Pairwise Comparisons
+  results_cfos2$p.value.fdr = ((cont.cfos.n %>% pairs(adjust = "fdr")) %>% as.data.frame())$p.value
+  ######## Calculcate Cohen's D
+  results_cfos2$CohD = abs(effectsize::t_to_d(as.data.frame(pairs(cont.cfos.n))$t.ratio,  
+                                    rep(6,6),
+                                    paired = T)$d
+                 )
+  ######## Update Data frame Results Output  
+  results_cfos2 <- results_cfos2 %>%
+    mutate(
+      MeanDiff = (estimate) %>% round(.,2),
+      SE = (SE) %>% round(.,2),
+      T.value = round(t.ratio,2),
+      CohD = round(CohD,2),
+      P.value = round(p.value,5),
+      P.value.fdr = round(p.value.fdr,5),
+      SigLevel = ifelse(P.value.fdr > 0.1, "n.s.",
+                        ifelse(P.value.fdr > 0.05, "~",
+                               ifelse(P.value.fdr > 0.01, "*",
+                                      ifelse(P.value.fdr > 0.001, "**", "***"))))
+    ) %>%
+    select(contrast,MeanDiff,SE,df,T.value,CohD,P.value,P.value.fdr,SigLevel)
+  knitr::kable(results_cfos2, caption = "MEMRI MEAN Differences between ROIs within Normal")  
+```
+
+
+## MEMRI Subset 2 {.tabset .tabset-fade .tabset-pills}
+
+### Load and Process Data {.tabset .tabset-fade .tabset-pills}
+
+#### Load Data
+```{R}
+filename <- "ELA_Normal_cfos_ROI.csv"
+header <- c("IMAGE","ROI"
+           ,c("ELA","Condition","VoxelNum") ############ USER INPUT NEEDED
+           ,"MEAN","BLANK") 
+
+dat_cfos_roi = read.csv2(paste0(dat_dir,"/",filename)
+                      ,header = F
+                      ,na.strings = NA
+                      ,sep = ","
+                      ,col.names = header)
+```
+
+#### Process Data
+
+```{R}
+dat_cfos_roi = dat_cfos_roi[,-which(colnames(dat_cfos_roi) == "BLANK")] 
+
+  #### FORMAT DATA FRAME
+  dat_cfos_roi <- dat_cfos_roi %>%
+    mutate(
+      Condition = factor(
+        Condition,
+        levels = c("D9")),
+      ELA = factor(
+        ELA,
+        levels = c("ELA","Normal"),
+        labels = c("ELA","Normal")),
+      ROI = factor(ROI,
+                   levels = c("CS","MB","HYP","THA"),
+                   labels = c("CS","MB","HYP","THA")
+                   ),
+      ID = factor(parse_number(IMAGE)),
+      VoxelNum = factor(VoxelNum),
+      MEAN = as.numeric(MEAN)
+    ) %>%
+    arrange(ROI,ELA,Condition,VoxelNum) %>%
+    group_by(
+      Condition,
+      ROI,
+      VoxelNum
+    ) %>%
+    mutate(
+      AnimNum = factor(1:n())
+    ) %>%
+    ungroup() %>%
+    select(AnimNum,VoxelNum,ELA,Condition,ROI,MEAN) %>%
+    filter(
+      AnimNum %in% c(7:12,c(16,19:23)) # Subset 2
+    )
+  
+Group_Intensity_Summary <- dat_cfos_roi %>% 
+  filter(ROI %in% c("CS","MB","HYP","THA"),
+         Condition == "D9") %>% 
+  group_by(ELA) %>% 
+  summarize(
+    m = mean(MEAN) %>% round(.,2),
+    s = sd(MEAN) %>% round(.,2),
+    cov = s/m
+    )
+  
+knitr::kable(summary(dat_cfos_roi))
+str(dat_cfos_roi)
+
+
+dat_cfos_roi_sub <- dat_cfos_roi %>%
+  filter(Condition == "D9",
+         ROI %in% c("CS","MB","HYP","THA")) %>%
+  mutate(
+    Condition = droplevels.factor(Condition),
+    ROI = droplevels.factor(ROI)
+  )
+
+knitr::kable(summary(dat_cfos_roi_sub))
+```  
+
+
+
+### Analysis {.tabset .tabset-fade .tabset-pills}
+
+#### Graph Pairwise Comparisons Plots
+
+```{R, fig.height = 5, fig.width = 6}
+#### Box Plot
+######## MEAN
+p1 = ggplot(data = dat_cfos_roi_sub %>% filter(ROI %in% c("CS","MB"), ELA == "ELA"),
+            aes(x=factor(ROI), y=MEAN/1000, color=factor(ELA), fill=factor(ELA)))
+p1 = p1 + geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, linewidth=0.5)
+p1 = p1 + geom_point(size=0.35, alpha=0.75)
+p1 = p1 + geom_boxplot(width=0.65, outlier.shape=NA, alpha=0.25, size=0.25) 
+p1 = p1 + scale_fill_manual(values = c(col_ela))
+p1 = p1 + scale_color_manual(values = c(col_ela))
+p1 = p1 + scale_y_continuous(limits=c(5,11), breaks=seq(5,11,1), expand=c(0,0,0,0))
+p1 = p1 + labs(title = "", x = "", y = "")
+p1 = p1 + theme_classic()
+p1 = p1 + theme(plot.title = element_blank()
+              , axis.title.x = element_blank()
+              , axis.text.x = element_text(angle=45,size=8,family="sans",face="bold",vjust=0.9,hjust=0.75)
+              , axis.title.y = element_blank()
+              , axis.text.y = element_text(size=8,family="sans",face="bold")
+              , strip.background = element_rect(fill="grey90")
+              , strip.text = element_text(size=8,family="sans",face="bold")
+              , panel.grid.major.x = element_blank()
+              , panel.grid.major.y = element_blank()
+              , legend.position = "none")
+p1
+# ggsave(filename=paste0(output_prefix,"_ELA_cfos_CS-MB_MEAN_box_n6.2.png")
+#        ,plot=p1
+#        ,device="png"
+#        ,path=paste0(img_dir,"/BoxPlots")
+#        ,units="in", width=0.75, height=1.45, dpi=320)
+
+p2 = ggplot(data = dat_cfos_roi_sub %>% filter(ROI %in% c("CS","MB"), ELA == "Normal"),
+            aes(x=factor(ROI), y=MEAN/1000, color=factor(ELA), fill=factor(ELA)))
+p2 = p2 + geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, linewidth=0.5)
+p2 = p2 + geom_point(size=0.35, alpha=0.75)
+p2 = p2 + geom_boxplot(width=0.65, outlier.shape=NA, alpha=0.25, size=0.25) 
+p2 = p2 + scale_fill_manual(values = c(col_norm))
+p2 = p2 + scale_color_manual(values = c(col_norm))
+p2 = p2 + scale_y_continuous(limits=c(5,11), breaks=seq(5,11,1), expand=c(0,0,0,0))
+p2 = p2 + labs(title = "", x = "", y = "")
+p2 = p2 + theme_classic()
+p2 = p2 + theme(plot.title = element_blank()
+              , axis.title.x = element_blank()
+              , axis.text.x = element_text(angle=45,size=8,family="sans",face="bold",vjust=0.9,hjust=0.75)
+              , axis.title.y = element_blank()
+              , axis.text.y = element_text(size=8,family="sans",face="bold")
+              , strip.background = element_rect(fill="grey90")
+              , strip.text = element_text(size=8,family="sans",face="bold")
+              , panel.grid.major.x = element_blank()
+              , panel.grid.major.y = element_blank()
+              , legend.position = "none")
+p2
+# ggsave(filename=paste0(output_prefix,"_Normal_cfos_CS-MB_MEAN_box_n6.2.png")
+#        ,plot=p2
+#        ,device="png"
+#        ,path=paste0(img_dir,"/BoxPlots")
+#        ,units="in", width=0.75, height=1.45, dpi=320)
+
+
+
+
+p3 = ggplot(data = dat_cfos_roi_sub %>% filter(ROI %in% c("HYP","THA"), ELA == "ELA"),
+            aes(x=factor(ROI), y=MEAN/1000, color=factor(ELA), fill=factor(ELA)))
+p3 = p3 + geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, linewidth=0.5)
+p3 = p3 + geom_point(size=0.35, alpha=0.75)
+p3 = p3 + geom_boxplot(width=0.65, outlier.shape=NA, alpha=0.25, size=0.25) 
+p3 = p3 + scale_fill_manual(values = c(col_ela))
+p3 = p3 + scale_color_manual(values = c(col_ela))
+p3 = p3 + scale_y_continuous(limits=c(5,11), breaks=seq(5,11,1), expand=c(0,0,0,0))
+p3 = p3 + labs(title = "", x = "", y = "")
+p3 = p3 + theme_classic()
+p3 = p3 + theme(plot.title = element_blank()
+              , axis.title.x = element_blank()
+              , axis.text.x = element_text(angle=45,size=8,family="sans",face="bold",vjust=0.9,hjust=0.75)
+              , axis.title.y = element_blank()
+              , axis.text.y = element_text(size=8,family="sans",face="bold")
+              , strip.background = element_rect(fill="grey90")
+              , strip.text = element_text(size=8,family="sans",face="bold")
+              , panel.grid.major.x = element_blank()
+              , panel.grid.major.y = element_blank()
+              , legend.position = "none")
+p3
+# ggsave(filename=paste0(output_prefix,"_ELA_cfos_HYP-THA_MEAN_box_n6.2.png")
+#        ,plot=p3
+#        ,device="png"
+#        ,path=paste0(img_dir,"/BoxPlots")
+#        ,units="in", width=0.75, height=1.45, dpi=320)
+
+
+p4 = ggplot(data = dat_cfos_roi_sub %>% filter(ROI %in% c("HYP","THA"), ELA == "Normal"),
+            aes(x=factor(ROI), y=MEAN/1000, color=factor(ELA), fill=factor(ELA)))
+p4 = p4 + geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, linewidth=0.5)
+p4 = p4 + geom_point(size=0.35, alpha=0.75)
+p4 = p4 + geom_boxplot(width=0.65, outlier.shape=NA, alpha=0.25, size=0.25) 
+p4 = p4 + scale_fill_manual(values = c(col_norm))
+p4 = p4 + scale_color_manual(values = c(col_norm))
+p4 = p4 + scale_y_continuous(limits=c(5,11), breaks=seq(5,11,1), expand=c(0,0,0,0))
+p4 = p4 + labs(title = "", x = "", y = "")
+p4 = p4 + theme_classic()
+p4 = p4 + theme(plot.title = element_blank()
+              , axis.title.x = element_blank()
+              , axis.text.x = element_text(angle=45,size=8,family="sans",face="bold",vjust=0.9,hjust=0.75)
+              , axis.title.y = element_blank()#text(hjust=1,size=9,family="sans")
+              , axis.text.y = element_text(size=8,family="sans",face="bold")
+              , strip.background = element_rect(fill="grey90")
+              , strip.text = element_text(size=8,family="sans",face="bold")
+              , panel.grid.major.x = element_blank()
+              , panel.grid.major.y = element_blank()
+              , legend.position = "none")
+p4
+# ggsave(filename=paste0(output_prefix,"_Normal_cfos_HYP-THA_MEAN_box_n6.2.png")
+#        ,plot=p4
+#        ,device="png"
+#        ,path=paste0(img_dir,"/BoxPlots")
+#        ,units="in", width=0.75, height=1.45, dpi=320)
+
+# grid.arrange(grobs = list(p1, p2, p3, p4), nrow=2, ncol=2)
+```
+
+#### Mixed Effect Models {.tabset .tabset-fade .tabset-pills}
+
+__Model Setup:__ A repeated measures ANOVA (mixed effects model) will be used for all analyses.
+
+Mixed Effect Model with Compound Symmetry in covariance matrix assumed. (Random intercept/Repeated Measure ANOVA).
+
+__Model:__
+
+$$
+  Y_{ij} = (\mu_0 + \alpha_j) + (S_i + e_{ij})
+$$
+
+Where fixed effects are `ROI` and `ELA`, and random effects are `Animal` and `Voxel Number`.
+
+Random effects here are used to control for Animal-to-Animal and Voxel-to-Voxel variance separately. 
+
+##### Assessing Residuals 
+
+```{R, fig.height = 4, fig.width = 6}
+dir_tmp = paste0(output_prefix,"_cfos_ROI_analysis_MEAN_n6.2")
+
+if (!dir.exists(paste0(img_dir,"/Residuals/"))) {dir.create(paste0(img_dir,"/Residuals"))}
+if (!dir.exists(paste0(img_dir,"/Residuals/",dir_tmp))) {dir.create(paste0(img_dir,"/Residuals/",dir_tmp))}
+
+  lme.n.mte.rma <- lme(MEAN ~ ROI
+                     , random = list((~1|AnimNum),(~1|VoxelNum))
+                     , method = "REML"
+                     , data = dat_cfos_roi_sub %>% filter(ELA %in% c("Normal"))
+  )
+  
+  lme.e.mte.rma <- lme(MEAN ~ ROI
+                     , random = list((~1|AnimNum),(~1|VoxelNum))
+                     , method = "REML"
+                     , data = dat_cfos_roi_sub %>% filter(ELA %in% c("ELA"))
+  )
+  
+  
+  for (group in c("ELA","Normal")) {
+    if (group == "ELA"){
+      lm.tmp = lme.e.mte.rma
+    } else {
+      lm.tmp = lme.n.mte.rma
+    }
+    
+    cnt=1
+    for (res in 1:dim(lm.tmp$residuals)[2]) {
+      #### Residual Effect Type
+      print(restype <- colnames(lm.tmp$residuals)[res])
+      #### QQ Plot
+      qqPlot(lm.tmp$residuals[,res], main=paste0("QQPlot for ",restype," in ", group))
+      jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/",output_prefix,"QQnorm_",restype,"-",group,"_n6.2.jpeg"),
+         width = 4, height = 4, units = "in", res = 300)
+      qqPlot(lm.tmp$residuals[,res], main=paste0("QQPlot for ",restype," in ", group))
+      dev.off()
+      ######## Bootstrapped Sampling Distribution of Residuals
+      jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/",output_prefix,"BootStrappedSampDist_",restype,"-",group,"_n6.2.jpeg"),
+         width = 4, height = 4, units = "in", res = 300)
+      bs_one_samp_dist(lm.tmp$residuals[,res])
+      dev.off()
+      #### Variance of Residuals by Fitted
+      plot(lm.tmp$fitted[(1:dim(lm.tmp$residuals)[1])*cnt], lm.tmp$residuals[,res],
+              main=paste0(restype," in", group, " Residuals by Fitted"))
+      jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/",output_prefix,"InHVar_Fitted",restype,"-",group,"_n6.2.jpeg"),
+           width = 4, height = 4, units = "in", res = 300)
+      plot(lm.tmp$fitted[(1:dim(lm.tmp$residuals)[1])*cnt], lm.tmp$residuals[,res],
+              main=paste0(restype," in", group, " Residuals by Fitted"))
+      dev.off()
+      #### Variance Plot by ROI
+      plot(lm.tmp$data$ROI, lm.tmp$residuals[,res],
+           main=paste0(restype," in", group," Residuals by ROI"))
+      jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/",output_prefix,"InHVar_ROI",restype,"-",group,"_n6.2.jpeg"),
+           width = 4, height = 4, units = "in", res = 300)
+      plot(lm.tmp$data$ROI, lm.tmp$residuals[,res],
+           main=paste0(restype," in", group," Residuals by ROI"))
+      dev.off()
+      cnt=cnt+1
+    }
+  }
+```
+
+##### Results of Linear Model and Post-Comparisons
+
+```{R}
+# ANOVA Results
+  print("ELA")
+  print(a.e.res <- Anova(lme.e.mte.rma, type="III"))
+  print("Normal")
+  print(a.n.res <- Anova(lme.n.mte.rma, type="III"))  
+
+# Post-hoc Tests
+## ELA
+  #### Contrast Family ####1: Withing Group Differences between ROIs
+  cont.cfos.e <- emmeans(lme.e.mte.rma, specs = "ROI")#, by = c("ELA"))
+  ######## Calculate T/P-values
+  results_cfos1 = cont.cfos.e %>% pairs(adjust = "none") %>% data.frame()
+  ######## FDR Adjustment of P-values for Family of Pairwise Comparisons
+  results_cfos1$p.value.fdr = ((cont.cfos.e %>% pairs(adjust = "fdr")) %>% as.data.frame())$p.value
+  ######## Calculcate Cohen's D
+  results_cfos1$CohD = abs(effectsize::t_to_d(as.data.frame(pairs(cont.cfos.e))$t.ratio,  
+                                    rep(6,6),
+                                    paired = T)$d
+                 )
+  ######## Update Data frame Results Output  
+  results_cfos1 <- results_cfos1 %>%
+    mutate(
+      MeanDiff = (estimate) %>% round(.,2),
+      SE = (SE) %>% round(.,2),
+      T.value = round(t.ratio,2),
+      CohD = round(CohD,2),
+      P.value = round(p.value,5),
+      P.value.fdr = round(p.value.fdr,5),
+      SigLevel = ifelse(P.value.fdr > 0.1, "n.s.",
+                        ifelse(P.value.fdr > 0.05, "~",
+                               ifelse(P.value.fdr > 0.01, "*",
+                                      ifelse(P.value.fdr > 0.001, "**", "***"))))
+    ) %>%
+    select(contrast,MeanDiff,SE,df,T.value,CohD,P.value,P.value.fdr,SigLevel)
+  knitr::kable(results_cfos1, caption = "MEMRI MEAN Differences between ROIs within ELA")  
+  
+  
+## Normal
+  #### Contrast Family ####1: Withing Group Differences between ROIs
+  cont.cfos.n <- emmeans(lme.n.mte.rma, specs = "ROI")#, by = c("ELA"))
+  ######## Calculate T/P-values
+  results_cfos2 = cont.cfos.n %>% pairs(adjust = "none") %>% data.frame()
+  ######## FDR Adjustment of P-values for Family of Pairwise Comparisons
+  results_cfos2$p.value.fdr = ((cont.cfos.n %>% pairs(adjust = "fdr")) %>% as.data.frame())$p.value
+  ######## Calculcate Cohen's D
+  results_cfos2$CohD = abs(effectsize::t_to_d(as.data.frame(pairs(cont.cfos.n))$t.ratio,  
+                                    rep(6,6),
+                                    paired = T)$d
+                 )
+  ######## Update Data frame Results Output  
+  results_cfos2 <- results_cfos2 %>%
+    mutate(
+      MeanDiff = (estimate) %>% round(.,2),
+      SE = (SE) %>% round(.,2),
+      T.value = round(t.ratio,2),
+      CohD = round(CohD,2),
+      P.value = round(p.value,5),
+      P.value.fdr = round(p.value.fdr,5),
+      SigLevel = ifelse(P.value.fdr > 0.1, "n.s.",
+                        ifelse(P.value.fdr > 0.05, "~",
+                               ifelse(P.value.fdr > 0.01, "*",
+                                      ifelse(P.value.fdr > 0.001, "**", "***"))))
+    ) %>%
+    select(contrast,MeanDiff,SE,df,T.value,CohD,P.value,P.value.fdr,SigLevel)
+  knitr::kable(results_cfos2, caption = "MEMRI MEAN Differences between ROIs within Normal")  
+```
+
+
+
+## Combining Subsets 1 and 2, as well as Groups  {.tabset .tabset-fade .tabset-pills}
+
+### Load Data
+```{R}
+library(psych)
+library(BlandAltmanLeh)
+
+#### Load Data
+
+filename <- "ELA_Normal_cfos_ROI.csv"
+header <- c("IMAGE","ROI"
+           ,c("ELA","Condition","VoxelNum") ############ USER INPUT NEEDED
+           ,"MEAN","BLANK")
+
+dat_cfos_roi = read.csv2(paste0(dat_dir,"/",filename)
+                      ,header = F
+                      ,na.strings = NA
+                      ,sep = ","
+                      ,col.names = header)
+```
+
+### Process Data
+
+```{R}
+dat_cfos_roi = dat_cfos_roi[,-which(colnames(dat_cfos_roi) == "BLANK")]
+
+  #### FORMAT DATA FRAME
+  dat_cfos_roi <- dat_cfos_roi %>%
+    mutate(
+      Condition = factor(
+        Condition,
+        levels = c("D9")),
+      ELA = factor(
+        ELA,
+        levels = c("ELA","Normal"),
+        labels = c("ELA","Normal")),
+      ROI = factor(ROI,
+                   levels = c("CS","MB","HYP","THA"),
+                   labels = c("CS","MB","HYP","THA")
+                   ),
+      ID = factor(parse_number(IMAGE)),
+      VoxelNum = factor(VoxelNum),
+      MEAN = as.numeric(MEAN)
+    ) %>%
+    arrange(ROI,ELA,Condition,VoxelNum) %>%
+    group_by(
+      Condition,
+      ROI,
+      VoxelNum
+    ) %>%
+    mutate(
+      AnimNum = factor(1:n()),
+      Subset = factor(
+        ifelse(AnimNum %in% c(1:6,13,14,15,17,18), 1, 2),
+        levels = c(1,2),
+        labels = c("Subset 1", "Subset 2")
+        ),
+    Condition = droplevels.factor(Condition),
+    ROI = droplevels.factor(ROI)
+    ) %>%
+    ungroup() %>%
+    select(AnimNum,VoxelNum,ELA,Subset,ROI,MEAN)
+
+
+Group_Intensity_Summary <- dat_cfos_roi %>%
+  group_by(
+    ELA,
+    Subset
+    ) %>%
+  summarize(
+    m = mean(MEAN) %>% round(.,2),
+    s = sd(MEAN) %>% round(.,2),
+    cov = s/m
+    )
+
+knitr::kable(summary(dat_cfos_roi))
+knitr::kable(Group_Intensity_Summary)
+```
+
+### Linear Mixed Model
+
+```{R}
+# Cycle through each ROI by replacing "MB" with other ROI names
+
+lme.ne.r = lme(MEAN ~ Subset,
+                random = list((~1|AnimNum)),
+                data = dat_cfos_roi %>% 
+                 filter(ELA == "Normal", ROI == "MB"),
+                method = "ML")
+
+
+anova(lme.ne.r, type = "marginal")
+
+cont1 <- emmeans(lme.ne.r, specs = "ROI", by = c("ELA"))
+cdf1 <- cont1 %>% pairs(adjust = "fdr") %>% as.data.frame()
+cdf1$CohD = effectsize::t_to_d(cdf1$t.ratio, df = c(rep(12,6),rep(11,6)), paired = T)$d %>% abs()
+cdf1
+
+
+cont2 <- emmeans(lme.ne.r, specs = "ELA", by = c("ROI"))
+cdf2 <- cont2 %>% pairs() %>% as.data.frame()
+cdf2$CohD = effectsize::t_to_d(cdf2$t.ratio, df = 23)$d %>% abs()
+cdf2$p.value.fdr = p.adjust(cdf2$p.value, method = "fdr")
+cdf2
+```
