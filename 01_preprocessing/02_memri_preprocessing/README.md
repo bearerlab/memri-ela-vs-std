@@ -1,6 +1,6 @@
 # MEMRI Pre-processing and Quality Control Code
 
-This subdirectory contains the code or links to the GitHub repos for code used for processing MEMRI images and for performing quantitative quality assurance tests. All Quality assurance code/analysis has a prefix "qa-". 
+This subdirectory contains the code or links to the GitHub repos for code used for processing MEMRI images and for performing quantitative quality assurance tests. All quality assurance code/analysis has a prefix "qa-". 
 
 Please see Bearer Lab GitHub repositories for [Skull Stripping](https://github.com/bearerlab/skull-stripper), [Modal Scaling](https://github.com/bearerlab/modal-scaling), and [ROI analysis](https://github.com/bearerlab/memri-roi-measurement).  
 
