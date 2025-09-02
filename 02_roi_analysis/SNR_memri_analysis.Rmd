@@ -3,6 +3,7 @@ title: "ELA vs Std SNR Analysis"
 author: "Taylor W. Uselman"
 output:
   html_document: 
+    keep_md: true
     toc: true
     number_sections: true
     toc_depth: 5
