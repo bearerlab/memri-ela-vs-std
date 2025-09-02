@@ -19,13 +19,12 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
     ├── Slice_Interpolation.m            # Interpolates slices with RF feedthrough artifacts
     ├── See Bearer Lab GitHub Repo on Skull Stripping. 
     ├── See Bearer Lab GitHub Repo on Modal Scaling.
-    └── 01_Quality_Control/
-        ├── snr_analysis.Rmd              # MR Signal-to-Noise (SNR) comparisons
-        ├── average.sh                    # Visual Alignment Quality
-        ├── jaccard_similarity.sh         # Extracts Values to Determine Jaccard Indices to template
-        ├── jaccard_similarity.R          # Calculates, graphs, and tests differences in Jaccard Indices
-        ├── mutual_information.R          # Calculates, graphs, and tests differences in NMI
-        └── roi_warped_v_smoothed.Rmd     # Determines the effect of smoothing on information
+    ├── qa_snr_analysis.Rmd              # MR Signal-to-Noise (SNR) comparisons
+    ├── qa_average.sh                    # Visual Alignment Quality
+    ├── qa_jaccard_similarity.sh         # Extracts Values to Determine Jaccard Indices to template
+    ├── qa_jaccard_similarity.R          # Calculates, graphs, and tests differences in Jaccard Indices
+    ├── qa_mutual_information.R          # Calculates, graphs, and tests differences in NMI
+    └── qa_roi_warped_v_smoothed.Rmd     # Determines the effect of smoothing on information
 ```
 
 ## Script Descriptions
