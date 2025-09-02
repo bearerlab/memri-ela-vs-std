@@ -74,12 +74,15 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 Note: For measurements, see [/RegionOfInterest/README.md]{/RegionOfInterest/README.md}
 
 
-#### `SkullStrip.sh` & `SkullStripper_v4.py`
+#### `SkullStrip.sh` & `skullstripper_v4.py`
+
+**[See Skull Stripping Bearer Lab GitHub Repo](https://github.com/bearerlab/skull-stripper/tree/main)**
+
 **Purpose:** To extract the brain from non-brain tissue 
 
 **Dependencies:** FSL / NiftyReg
 
-**Usage:** `./SkullStrip.sh <input_dir> <output_dir>`
+**Usage:** `./SkullStrip.sh <referencevolume> <referencemask> <pythonscript> <pythonversion>`
 
 **Inputs:** 
     - Raw images with header correction, placed inside a directory called `Input`
