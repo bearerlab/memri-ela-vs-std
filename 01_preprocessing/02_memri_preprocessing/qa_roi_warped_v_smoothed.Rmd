@@ -1,0 +1,746 @@
+---
+title: "Warped vs Smoothed ROI SI Comparison"
+author: "Taylor W. Uselman"
+date: "Original Date: 08/23/2024, Last Modified Date: `r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document: 
+    toc: true
+    number_sections: true
+    toc_depth: 5
+    code_folding: show
+    theme: cerulean #spacelab yeti united cosmo | #prettydoc::html_pretty cayman tactile architect leonids hpstr
+    highlight: tango
+  pdf_document:
+    df_print: kable
+fontsize: 12pt
+geometry: margin=0.25in
+always_allow_html: yes
+---
+
+```{R setup, include=FALSE}
+# Format RMarkdown Parameters
+knitr::opts_chunk$set(comment = NA, message = FALSE, warning = FALSE, width = 100)
+knitr::opts_chunk$set(fig.align = "center", fig.height = 5, fig.width = 12) # 4" x 8" unless otherwise specific
+knitr::opts_chunk$set(cache = TRUE) # cache = FALSE may be needed, but be aware... this document will take a very long time to knit.
+knitr::opts_chunk$set(echo = TRUE) # Code output is echoed/output immediately after the code in the .html file.
+
+
+wdir <- "Local Directory" # User directory where warped and smooothed ROI data CSV files are located.
+setwd(wdir)
+
+dat_dir = paste0(wdir,"/InputData/")
+res_dir = paste0(wdir,"/Results/")
+img_dir = paste0(wdir,"/Images/")
+```
+
+```{R}
+# Data Processing
+# citation()
+library(openxlsx)
+library(tidyverse)
+library(reshape2)
+
+# Data Graphics
+library(ggplot2)
+library(gridExtra)
+library(corrplot)
+library(RColorBrewer)
+
+# Data Analysis
+library(nlme) # Non-linear Mixed Effects Models
+library(car) # Diagnostics
+library(emmeans) # Post-hoc pair-wise t-tests from NLME output, with multiple comparisons correction
+
+source("./ada_functions.R") #Functions for assessing model residuals
+```
+
+# Load and Process Data
+
+```{R}
+warped_fname <- "240823_Combined_ROI_Data_HemiCombined-warped.xlsx"
+smoothed_fname <- "240823_Combined_ROI_Data_HemiCombined-smoothed.xlsx"
+
+# Load Warped Data
+dat_warped = readWorkbook(paste0(dat_dir,warped_fname), sheet = 1, colNames = T) %>%
+  mutate(
+    ID = factor(ID),
+    Num = factor(Num),
+    Group = factor(ELA, levels = c("Standard","ELA")),
+    Condition = factor(Condition, levels = c("BL","HC","TMT")),
+    ROI = factor(ROI, 
+                 levels = c("MOB-e","MOB-n","AON","PIR",
+                            "MEA","CEA","BLA",
+                            "PVH",
+                            "NDB","LSr","ACB","SPA"),
+                 labels = c("dlOB-DII","mOB-DII","vlAON","aOC",
+                            "MEA","aCEA","BLA",
+                            "PVH",
+                            "dmNDB","aLS","dmACB","SPA")), 
+    HEMI = factor(HEMI, levels = c("L","R")),
+    MEAN_BL = as.numeric(MEAN_BL) %>% round(.,3),
+    Cohort = factor(Cohort),
+    Pstep = factor(rep("Warped"), levels = c("Warped","Smoothed"))
+  ) %>%
+  select(-c(ELA,Cohort)) %>%
+  filter(ROI %in% c("dlOB-DII","vlAON","aOC","aCEA","mOB-DII","dmNDB","aLS","dmACB")) %>% 
+  mutate(ROI = droplevels.factor(ROI))
+# str(dat_warped)
+
+# Load Smoothed Data
+dat_smoothed = readWorkbook(paste0(dat_dir,smoothed_fname), sheet = 1, colNames = T) %>%
+  mutate(
+    ID = factor(ID),
+    Num = factor(Num),
+    Group = factor(ELA, levels = c("Standard","ELA")),
+    Condition = factor(Condition, levels = c("BL","HC","TMT")),
+    ROI = factor(ROI, 
+                 levels = c("MOB-e","MOB-n","AON","PIR",
+                            "MEA","CEA","BLA",
+                            "PVH",
+                            "NDB","LSr","ACB","SPA"),
+                 labels = c("dlOB-DII","mOB-DII","vlAON","aOC",
+                            "MEA","aCEA","BLA",
+                            "PVH",
+                            "dmNDB","aLS","dmACB","SPA")), 
+    HEMI = factor(HEMI, levels = c("L","R")),
+    MEAN_BL = as.numeric(MEAN_BL) %>% round(.,3),
+    Cohort = factor(Cohort),
+    Pstep = factor(rep("Smoothed"), levels = c("Warped","Smoothed"))
+  ) %>%
+  select(-c(ELA,Cohort)) %>%
+  filter(ROI %in% c("dlOB-DII","vlAON","aOC","aCEA","mOB-DII","dmNDB","aLS","dmACB")) %>% 
+  mutate(ROI = droplevels.factor(ROI))
+# str(dat_smoothed)
+
+
+# Combine Data Frames
+dat_roi = rbind.data.frame(dat_warped,dat_smoothed)
+
+str(dat_roi)
+summary(dat_roi)
+
+
+# Summarize across Hemisphere
+dat_roi_sum = dat_roi %>%
+  group_by(ID, Num, Group, Condition, Pstep, ROI) %>%
+  reframe(
+    MEAN_BL = mean(MEAN_BL) %>% round(.,3)
+  )
+
+
+# Set Color Scheme
+col_norm = "cyan4"
+col_ela =  "goldenrod3"
+col_hc = "blue1"
+col_tmt =  "red1"
+col_d9 = "limegreen" 
+```
+
+# ELA Olfactory and Amygdala 
+## Graph by ROI, Condition, and Processing Step (Warped vs Smoothed) 
+
+```{R}
+
+dat_roi_sum_sub1 = dat_roi_sum %>%
+  filter(Group == "ELA",
+         Condition %in% c("HC","TMT"),
+         ROI %in% c("dlOB-DII","vlAON","aOC","aCEA")) %>%
+  mutate(
+    Condition = droplevels.factor(Condition),
+    ROI = droplevels.factor(ROI)
+  )
+# str(dat_roi_sum_sub1)
+# summary(dat_roi_sum_sub1)
+
+p = ggplot(data = dat_roi_sum_sub1,
+            aes(x=Condition, y=MEAN_BL*100, fill=factor(Condition), shape=Pstep))
+p = p + geom_boxplot(position=position_dodge(0.75),width=0.5,
+                     outlier.shape = NA, aes(color=Condition),
+                     alpha=0.05,size=0.1)
+# p = p + geom_text(size=3,aes(label=Num),position=position_dodge(0.75))
+p = p + geom_point(size=1.4,alpha=1,position=position_dodge(0.75), color=col_ela)
+p = p + geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, linewidth=0.5)
+p = p + scale_fill_manual(values=c(col_hc, col_tmt))
+p = p + scale_color_manual(values=c(col_hc, col_tmt))
+p = p + scale_y_continuous(limits = c(-5,24), breaks = seq(-5,20,5),expand=c(0,0,0,0))
+p = p + labs(title = "", x = "", y = "")
+p = p + theme_classic()
+p = p + theme(plot.title = element_blank()
+              , axis.title.x = element_blank()
+              , axis.text.x = element_text(size=8,family="sans")
+              , axis.title.y = element_text(hjust=1,size=9,family="sans")
+              , axis.text.y = element_text(size=8,family="sans")
+              , legend.position = "none")
+
+p1 = p + facet_grid(. ~ ROI)
+# p2 = p + facet_grid(ROI ~ .)
+
+plot(p1)
+# plot(p2)
+
+
+if (!dir.exists(img_dir)) {dir.create(img_dir)}
+if (!dir.exists(paste0(img_dir,"Boxplots"))) {dir.create(paste0(img_dir,"Boxplots"))}
+
+ggsave(filename = "250313_SIApp_FigS6A_ROIs_WvS.png",
+       plot = p1,
+       device = "png",
+       path = paste0(img_dir,"BoxPlots"),
+       units = "mm", width = 132, height = 50, dpi = 320)
+
+# ggsave(filename = "240823_SIApp_FigS3A_ROIs_WvS_orient2.png",
+#        plot = p2,
+#        device = "png",
+#        path = paste0(img_dir,"BoxPlots"),
+#        units = "in", width = 2.5, height = 5, dpi = 320)
+```
+
+## Linear Model Statistics
+
+```{R}
+dir_tmp = "OLFCEA_MEAN_BL_WvS"
+
+if (!dir.exists(paste0(img_dir,"/Residuals/"))) {dir.create(paste0(img_dir,"/Residuals"))}
+if (!dir.exists(paste0(img_dir,"/Residuals/",dir_tmp))) {dir.create(paste0(img_dir,"/Residuals/",dir_tmp))}
+for (i in 1:length(levels(dat_roi_sum_sub1$ROI))) { 
+  # i = 1
+  roi = levels(dat_roi_sum_sub1$ROI)[i]
+  
+  dftmp = dat_roi_sum_sub1 %>% filter(ROI == roi)
+  
+  #### Mixed Model Repeated Measures ANOVA (Unstructured)
+  lme.mte.rma <- lme(MEAN_BL ~ Condition * Pstep
+                     , random = (~ 1 | ID)
+                     , method = "REML"
+                     , control = lmeControl(opt = 'optim')
+                     , data = dftmp
+                     )
+  
+  ### Analyzing Residuals
+  norout1 <- nortest::ad.test(lme.mte.rma$residuals[,1])
+  varout1 <- car::leveneTest(lme.mte.rma$residuals[,1] ~
+                               lme.mte.rma$data$Condition * lme.mte.rma$data$Pstep)
+  norout2 <- nortest::ad.test(lme.mte.rma$residuals[,2])
+  varout2 <- car::leveneTest(lme.mte.rma$residuals[,2] ~
+                               lme.mte.rma$data$Condition * lme.mte.rma$data$Pstep)
+  
+  if (!file.exists(paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/QQnorm_",dir_tmp,"_",roi,".jpeg"))){
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/QQnorm_",dir_tmp,"_",roi,"1.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    qqPlot(lme.mte.rma$residuals[,1])
+    dev.off()
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/QQnorm_",dir_tmp,"_",roi,"2.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    qqPlot(lme.mte.rma$residuals[,2])
+    dev.off()
+  }
+  if (!file.exists(paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/BSnorm_",dir_tmp,"_",roi,"1.jpeg"))){
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/BSnorm_",dir_tmp,"_",roi,"1.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    bs_one_samp_dist(lme.mte.rma$residuals[,1])
+    dev.off()
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/BSnorm_",dir_tmp,"_",roi,"2.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    bs_one_samp_dist(lme.mte.rma$residuals[,2])
+    dev.off()
+  }
+  if (!file.exists(paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Condition_",dir_tmp,"_",roi,"1.jpeg"))){
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Condition_",dir_tmp,"_",roi,"1.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    plot(lme.mte.rma$data$Condition
+         ,lme.mte.rma$residuals[,1]
+         ,main=paste0(roi," - Residuals by Condition"))
+    dev.off()
+        jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Condition_",dir_tmp,"_",roi,"2.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    plot(lme.mte.rma$data$Condition
+         ,lme.mte.rma$residuals[,2]
+         ,main=paste0(roi," - Residuals by Condition"))
+    dev.off()
+  }
+  if (!file.exists(paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Processing_",dir_tmp,"_",roi,"1.jpeg"))){
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Processing_",dir_tmp,"_",roi,"1.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    plot(lme.mte.rma$data$Condition
+         ,lme.mte.rma$residuals[,1]
+         ,main=paste0(roi," - Residuals by Processing"))
+    dev.off()
+        jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Processing_",dir_tmp,"_",roi,"2.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    plot(lme.mte.rma$data$Condition
+         ,lme.mte.rma$residuals[,2]
+         ,main=paste0(roi," - Residuals by Processing"))
+    dev.off()
+  }
+  if (!file.exists(paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/CompSymm_",dir_tmp,"_",roi,".jpeg"))){
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/CompSymm_",dir_tmp,"_",roi,".jpeg")
+         , width = 8, height = 8, units = "in", res = 300)
+    corrplot::corrplot.mixed(cov2cor(vcov(lme.mte.rma))
+                           , lower="ellipse",upper="number"
+                           , tl.cex = 0.75, number.cex = 2
+                           , main = paste0(roi," - Correlation of Fixed Effects"))
+    dev.off()
+  }
+
+  
+  ### Results 
+  
+  #### ANOVA
+  a.res <- anova(lme.mte.rma, type="marginal")
+  if (i == 1){
+    afit.list <- cbind.data.frame(roi,"MEAN_BL",
+                                  round(AIC(lme.mte.rma),2),
+                                  round(BIC(lme.mte.rma),2),
+                                  round(lme.mte.rma$logLik),
+                                  norout1$p.value,norout2$p.value,varout1$`Pr(>F)`[1],
+                                  varout2$`Pr(>F)`[1])
+    colnames(afit.list) <- c("ROI","Response","AIC","BIC","logLik",
+                             "AD.test.fix.pval","AD.test.rand.pval2",
+                             "Lev.test.fix.pval1","Lev.test.rand.pval2")
+
+    aout_full <- cbind.data.frame("Effect"=row.names(a.res),
+                                  "ROI"=rep(roi,length(row.names(a.res))),
+                                  "F-value"=a.res$`F-value`,
+                                  "partEta2"=effectsize::eta_squared(a.res)$Eta2[2],
+                                  "p-value"=a.res$`p-value`)
+    rownames(aout_full) <- NULL
+
+  } else {
+    afit.list.tmp <- cbind.data.frame(roi,"MEAN_BL",round(AIC(lme.mte.rma),2),round(BIC(lme.mte.rma),2),round(lme.mte.rma$logLik),norout1$p.value,norout2$p.value,varout1$`Pr(>F)`[1],varout2$`Pr(>F)`[1])
+    colnames(afit.list.tmp) <- c("ROI","Response","AIC","BIC","logLik",
+                             "AD.test.fix.pval","AD.test.rand.pval2",
+                             "Lev.test.fix.pval1","Lev.test.rand.pval2")
+    afit.list <- rbind(afit.list,afit.list.tmp)
+
+    aout_full_tmp <- cbind.data.frame("Effect"=row.names(a.res),
+                                      "ROI"=rep(roi,length(row.names(a.res))),
+                                      "F-value"=a.res$`F-value`,
+                                      "partEta2"=effectsize::eta_squared(a.res)$Eta2[2],
+                                      "p-value"=a.res$`p-value`)
+    rownames(aout_full_tmp) <- NULL
+    aout_full <- rbind.data.frame(aout_full,aout_full_tmp)
+
+  }
+  
+  
+  
+  #### Post-hoc Tests between Conditions by Processing Step -- Uncorrected p-values
+  cont.roi1 <- emmeans(lme.mte.rma, specs = "Condition", by = "Pstep")
+  pairs.roi1 <- pairs(cont.roi1)
+  t.test.summary1 <- cbind.data.frame(ROI=roi
+                                     ,as.data.frame(as.matrix(as.data.frame(pairs.roi1)))[,-c(6,7)]
+                                     ,"Cohen's D" = abs(effectsize::t_to_d(as.data.frame(pairs.roi1)$t.ratio, 12, paired = T)$d) %>% round(.,2)
+                                     ,"lower.CL" = confint(pairs.roi1)$lower.CL %>% round(.,3)
+                                     ,"upper.CL" = confint(pairs.roi1)$upper.CL %>% round(.,3)
+                                     ,"p.value"  = as.data.frame(pairs.roi1)$p.value)
+  
+  
+  #### Post-hoc Tests between Processing Steps by Condition -- Uncorrected p-values
+  cont.roi2 <- emmeans(lme.mte.rma, specs = "Pstep", by = "Condition")
+  pairs.roi2 <- pairs(cont.roi2)
+  t.test.summary2 <- cbind.data.frame("ROI" = roi
+                                     ,as.data.frame(as.matrix(as.data.frame(pairs.roi2)))[,-c(6,7)]
+                                     ,"Cohen's D" = abs(effectsize::t_to_d(as.data.frame(pairs.roi2)$t.ratio, 12, paired = T)$d) %>% round(.,2)
+                                     ,"lower.CL" = confint(pairs.roi2)$lower.CL %>% round(.,3)
+                                     ,"upper.CL" = confint(pairs.roi2)$upper.CL %>% round(.,3)
+                                     ,"p.value"  = as.data.frame(pairs.roi2)$p.value)
+  
+
+  if (i == 1) {
+    t.test.summary11 = t.test.summary1
+    t.test.summary22 = t.test.summary2
+  } else {
+    t.test.summary11 = rbind.data.frame(t.test.summary11,t.test.summary1)
+    t.test.summary22 = rbind.data.frame(t.test.summary22,t.test.summary2)
+  }
+    
+}
+options(scipen=999)
+t.test.summary11 <- t.test.summary11 %>%
+  mutate(
+    # FDR Corrections across 6 ROIs for pairwise comparisons between HC and TMT separated by Group
+    p.value.fdr = group_by(across(p.value, ~p.adjust(p.value, method="fdr"))) %>% pull(p.value),
+    estimate = estimate %>% as.double() %>% round(.,3),
+    SE = SE %>% as.double() %>% round(.,3),
+    df = as.integer(df)
+    ) %>%
+  ungroup() %>%
+  as.data.frame()
+
+t.test.summary22 <- t.test.summary22 %>% 
+  mutate(
+    # FDR Corrections across 6 ROIs for pairwise comparisons between ELA and Standard
+    p.value.fdr = group_by(across(p.value, ~p.adjust(p.value, method="fdr"))) %>% pull(p.value),
+    estimate = estimate %>% as.double() %>% round(.,3),
+    SE = SE %>% as.double() %>% round(.,3),
+    df = as.integer(df)
+    ) %>%
+  ungroup() %>%
+  as.data.frame()
+```
+
+### OLFCEA XSLX OUTPUT
+
+```{R}
+if (!dir.exists(res_dir)) {dir.create(res_dir)}
+if (!file.exists(paste0(res_dir,dir_tmp,"_LME_Results.xlsx"))) { 
+  wb <- createWorkbook()
+  addWorksheet(wb, "ANOVA_Fit")
+  addWorksheet(wb, "ANOVA_Summary")
+  addWorksheet(wb, "T_Test_Summary_Cond")
+  addWorksheet(wb, "T_Test_Summary_Pstep")
+  writeDataTable(wb
+               , sheet = "ANOVA_Fit"
+               , afit.list
+               , colNames = T)
+  writeDataTable(wb
+               , sheet = "ANOVA_Summary"
+               , aout_full
+               , colNames = T)
+  writeDataTable(wb
+               , sheet = "T_Test_Summary_Cond"
+               , t.test.summary11
+               , colNames = T)
+  writeDataTable(wb
+               , sheet = "T_Test_Summary_Pstep"
+               , t.test.summary22
+               , colNames = T)
+  saveWorkbook(wb, file = paste0(res_dir,dir_tmp,"_LME_Results.xlsx"), overwrite = T)
+  saveRDS(list(
+    "ANOVA_Fit" = afit.list,
+    "ANOVA_Summary" = aout_full,
+    "T_Test_Summary_Cond" = t.test.summary11,
+    "T_Test_Summary_ELA" = t.test.summary22),
+    file = paste0(res_dir,dir_tmp,"_LME_Results.RData"))
+}
+```
+
+
+# ELA vs Standard (ROIs from Uselman et al. 2020) 
+## Graph by ROI, Condition, and Processing Step (Warped vs Smoothed) 
+
+```{R}
+dat_roi_sum_sub3 = dat_roi_sum %>%
+  filter(Condition %in% c("HC","TMT"),
+         ROI %in% c("mOB-DII","dmNDB","aLS","dmACB")) %>%
+  mutate(
+    Condition = droplevels.factor(Condition),
+    ROI = droplevels.factor(ROI)
+  )
+# str(dat_roi_sum_sub3)
+# summary(dat_roi_sum_sub3)
+
+p = ggplot(data = dat_roi_sum_sub3 %>% filter(Group == "Standard"),
+            aes(x=Condition, y=MEAN_BL*100, fill=Condition, shape = Pstep))
+p = p + geom_hline(yintercept=0, linetype="dashed", color="black", alpha =0.25, size=0.5)
+p = p + geom_boxplot(aes(color = Condition),
+                     position=position_dodge(0.75),width=0.65,
+                     outlier.shape = NA,alpha=0.05,size=0.1)
+p = p + scale_fill_manual(values = c(col_hc, col_tmt))
+p = p + scale_color_manual(values = c(col_hc,
+                                      col_tmt,
+                                      col_hc,
+                                      col_tmt))
+library(ggnewscale)
+p = p + new_scale_color()
+p = p + geom_point(aes(color=Group),
+                   size=1.4,alpha=1,position=position_dodge(0.75))
+p = p + scale_color_manual(values = c(col_norm,col_ela))
+p = p + scale_y_continuous(limits = c(-8,32), breaks = seq(-5,30,5),expand=c(0,0,0,0))
+p = p + labs(title = "", x = "", y = "")
+p = p + theme_classic()
+p = p + theme(plot.title = element_blank()
+              , axis.title.x = element_blank()
+              , axis.text.x = element_text(size=8,family="sans")
+              , axis.title.y = element_text(hjust=1,size=9,family="sans")
+              , axis.text.y = element_text(size=8,family="sans")
+              , legend.position = "none")
+p1 = p + facet_grid(. ~ ROI)
+
+
+plot(p1)
+
+
+
+if (!dir.exists(img_dir)) {dir.create(img_dir)}
+if (!dir.exists(paste0(img_dir,"Boxplots"))) {dir.create(paste0(img_dir,"Boxplots"))}
+
+# ggsave(filename = "250313_SIApp_FigS3C_Upper_WvS.png",
+#        plot = p1,
+#        device = "png",
+#        path = paste0(img_dir,"BoxPlots"),
+#        units = "mm", width = 132, height = 50, dpi = 320)
+
+
+```
+
+## Linear Model Statistics
+
+```{R}
+dir_tmp = "UB2020_MEAN_BL_WvS"
+
+if (!dir.exists(paste0(img_dir,"/Residuals/"))) {dir.create(paste0(img_dir,"/Residuals"))}
+if (!dir.exists(paste0(img_dir,"/Residuals/",dir_tmp))) {dir.create(paste0(img_dir,"/Residuals/",dir_tmp))}
+for (i in 1:length(levels(dat_roi_sum_sub3$ROI))) { 
+  roi = levels(dat_roi_sum_sub3$ROI)[i]
+  # print(roi)
+  dftmp = dat_roi_sum_sub3 %>% filter(ROI == roi, ID != 10) 
+  
+  #### Mixed Model Repeated Measures ANOVA (Unstructured)
+
+  lme.mte.rma <- lme(MEAN_BL ~ Condition*Group * Pstep
+                     , random = (~1|ID)
+                     , method="REML"
+                     , control = lmeControl(opt = 'optim')
+                     , data = dftmp
+                     )
+  norout1 <- nortest::ad.test(lme.mte.rma$residuals[,1])
+  varout1 <- car::leveneTest(lme.mte.rma$residuals[,1] ~ lme.mte.rma$data$Condition * lme.mte.rma$data$Group * lme.mte.rma$data$Pstep)
+  norout2 <- nortest::ad.test(lme.mte.rma$residuals[,2])
+  varout2 <- car::leveneTest(lme.mte.rma$residuals[,2] ~ lme.mte.rma$data$Condition * lme.mte.rma$data$Group * lme.mte.rma$data$Pstep)
+  
+  if (!file.exists(paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/QQnorm_",dir_tmp,"_",roi,".jpeg"))){
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/QQnorm_",dir_tmp,"_",roi,"1.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    qqPlot(lme.mte.rma$residuals[,1])
+    dev.off()
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/QQnorm_",dir_tmp,"_",roi,"2.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    qqPlot(lme.mte.rma$residuals[,2])
+    dev.off()
+  }
+  if (!file.exists(paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/BSnorm_",dir_tmp,"_",roi,"1.jpeg"))){
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/BSnorm_",dir_tmp,"_",roi,"1.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    bs_one_samp_dist(lme.mte.rma$residuals[,1])
+    dev.off()
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/BSnorm_",dir_tmp,"_",roi,"2.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    bs_one_samp_dist(lme.mte.rma$residuals[,2])
+    dev.off()
+  }
+  if (!file.exists(paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Condition_",dir_tmp,"_",roi,"1.jpeg"))){
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Condition_",dir_tmp,"_",roi,"1.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    plot(lme.mte.rma$data$Condition
+         ,lme.mte.rma$residuals[,1]
+         ,main=paste0(roi," - Residuals by Condition"))
+    dev.off()
+        jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Condition_",dir_tmp,"_",roi,"2.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    plot(lme.mte.rma$data$Condition
+         ,lme.mte.rma$residuals[,2]
+         ,main=paste0(roi," - Residuals by Condition"))
+    dev.off()
+  }
+  if (!file.exists(paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Group_",dir_tmp,"_",roi,"1.jpeg"))){
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Group_",dir_tmp,"_",roi,"1.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    plot(lme.mte.rma$data$Group
+         ,lme.mte.rma$residuals[,1]
+         ,main=paste0(roi," - Residuals by Group"))
+    dev.off()
+        jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Group_",dir_tmp,"_",roi,"2.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    plot(lme.mte.rma$data$Group
+         ,lme.mte.rma$residuals[,2]
+         ,main=paste0(roi," - Residuals by Group"))
+    dev.off()
+  }
+  if (!file.exists(paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Processing_",dir_tmp,"_",roi,"1.jpeg"))){
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Processing_",dir_tmp,"_",roi,"1.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    plot(lme.mte.rma$data$Pstep
+         ,lme.mte.rma$residuals[,1]
+         ,main=paste0(roi," - Residuals by Processing"))
+    dev.off()
+        jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/InHVar_Processing_",dir_tmp,"_",roi,"2.jpeg")
+         , width = 4, height = 4, units = "in", res = 300)
+    plot(lme.mte.rma$data$Pstep
+         ,lme.mte.rma$residuals[,2]
+         ,main=paste0(roi," - Residuals by Processing"))
+    dev.off()
+  }
+  if (!file.exists(paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/CompSymm_",dir_tmp,"_",roi,".jpeg"))){
+    jpeg(file=paste0(paste0(img_dir,"/Residuals/"),dir_tmp,"/CompSymm_",dir_tmp,"_",roi,".jpeg")
+         , width = 8, height = 8, units = "in", res = 300)
+    corrplot::corrplot.mixed(cov2cor(vcov(lme.mte.rma))
+                           , lower="ellipse",upper="number"
+                           , tl.cex = 0.75, number.cex = 2
+                           , main = paste0(roi," - Correlation of Fixed Effects"))
+    dev.off()
+  }
+
+  a.res <- anova(lme.mte.rma, type="marginal")
+  # sumout <- summary(lme.mte.rma)
+
+  if (i == 1){
+    afit.list <- cbind.data.frame(roi,"MEAN_BL",
+                                  round(AIC(lme.mte.rma),2),
+                                  round(BIC(lme.mte.rma),2),
+                                  round(lme.mte.rma$logLik),
+                                  norout1$p.value,norout2$p.value,varout1$`Pr(>F)`[1],
+                                  varout2$`Pr(>F)`[1])
+    colnames(afit.list) <- c("ROI","Response","AIC","BIC","logLik",
+                             "AD.test.fix.pval","AD.test.rand.pval2",
+                             "Lev.test.fix.pval1","Lev.test.rand.pval2")
+
+    aout_full <- cbind.data.frame("Effect"=row.names(a.res),
+                                  "ROI"=rep(roi,length(row.names(a.res))),
+                                  "F-value"=a.res$`F-value`,
+                                  "partEta2"=effectsize::eta_squared(a.res)$Eta2[3],
+                                  "p-value"=a.res$`p-value`)
+    rownames(aout_full) <- NULL
+
+  } else {
+    afit.list.tmp <- cbind.data.frame(roi,"MEAN_BL",
+                                      round(AIC(lme.mte.rma),2),
+                                      round(BIC(lme.mte.rma),2),
+                                      round(lme.mte.rma$logLik),
+                                      norout1$p.value,
+                                      norout2$p.value,varout1$`Pr(>F)`[1],
+                                      varout2$`Pr(>F)`[1])
+    colnames(afit.list.tmp) <- c("ROI","Response","AIC","BIC","logLik",
+                             "AD.test.fix.pval","AD.test.rand.pval2",
+                             "Lev.test.fix.pval1","Lev.test.rand.pval2")
+    afit.list <- rbind(afit.list,afit.list.tmp)
+
+    aout_full_tmp <- cbind.data.frame("Effect"=row.names(a.res),
+                                      "ROI"=rep(roi,length(row.names(a.res))),
+                                      "F-value"=a.res$`F-value`,
+                                      "partEta2"=effectsize::eta_squared(a.res)$Eta2[3],
+                                      "p-value"=a.res$`p-value`)
+    rownames(aout_full_tmp) <- NULL
+    aout_full <- rbind.data.frame(aout_full,aout_full_tmp)
+
+  }
+  
+  # Post-hoc Tests: Uncorrected and Tukey corrected p-values are reported.
+  cont.roi1 <- emmeans(lme.mte.rma, specs = "Condition", by = c("Group", "Pstep"))
+  pairs.roi1 = pairs(cont.roi1)
+  t.test.summary1 <- cbind.data.frame("ROI" = rep(roi,2)
+                                     , as.data.frame(as.matrix(as.data.frame(pairs.roi1)))[,-c(7,8)]
+                                     , "Cohen's D" = abs(effectsize::t_to_d(as.data.frame(pairs.roi1)$t.ratio,
+                                                                            rep(c(11,12),2),
+                                                                            paired = T)$d) %>% round(.,2)
+                                     , "lower.CL" = confint(pairs.roi1)$lower.CL %>% round(.,3)
+                                     , "upper.CL" = confint(pairs.roi1)$upper.CL %>% round(.,3)
+                                     , "p.value"  = as.data.frame(pairs.roi1)$p.value)
+  
+  
+  cont.roi2 <- emmeans(lme.mte.rma, specs = "Group", by = c("Condition", "Pstep"))
+  pairs.roi2 = pairs(cont.roi2)
+  t.test.summary2 <- cbind.data.frame("ROI" = rep(roi,2)
+                                     ,as.data.frame(as.matrix(as.data.frame(pairs.roi2)))[,-c(7,8)]
+                                     ,"Cohen's D" = abs(effectsize::t_to_d(as.data.frame(pairs.roi1)$t.ratio,
+                                                                           rep(c(23,24),2),
+                                                                           paired = F)$d) %>% round(.,2)
+                                     # see ?effectsize::t_to_d()
+                                     ,"lower.CL" = confint(pairs.roi2)$lower.CL %>% round(.,3)
+                                     ,"upper.CL" = confint(pairs.roi2)$upper.CL %>% round(.,3)
+                                     ,"p.value"  = as.data.frame(pairs.roi2)$p.value)
+  
+  cont.roi3 <- emmeans(lme.mte.rma, specs = "Pstep", by = c("Condition", "Group"))
+  pairs.roi3 = pairs(cont.roi3)
+  t.test.summary3 <- cbind.data.frame("ROI" = rep(roi,2)
+                                     ,as.data.frame(as.matrix(as.data.frame(pairs.roi3)))[,-c(7,8)]
+                                     ,"Cohen's D" = abs(effectsize::t_to_d(as.data.frame(pairs.roi3)$t.ratio,
+                                                                           c(rep(11,2),rep(12,2)),
+                                                                           paired = F)$d) %>% round(.,2)
+                                     # see ?effectsize::t_to_d()
+                                     ,"lower.CL" = confint(pairs.roi3)$lower.CL %>% round(.,3)
+                                     ,"upper.CL" = confint(pairs.roi3)$upper.CL %>% round(.,3)
+                                     ,"p.value"  = as.data.frame(pairs.roi3)$p.value)
+  
+
+  if (i == 1) {
+    t.test.summary11 = t.test.summary1
+    t.test.summary22 = t.test.summary2
+    t.test.summary33 = t.test.summary3
+  } else {
+    t.test.summary11 = rbind.data.frame(t.test.summary11,t.test.summary1)
+    t.test.summary22 = rbind.data.frame(t.test.summary22,t.test.summary2)
+    t.test.summary33 = rbind.data.frame(t.test.summary33,t.test.summary3)
+  }
+    
+}
+
+t.test.summary11 <- t.test.summary11 %>% 
+  mutate(
+    # FDR Corrections across 6 ROIs for pairwise comparisons between HC and TMT separated by Group
+    p.value.fdr = group_by(across(p.value, ~p.adjust(p.value, method="fdr"))) %>% pull(p.value),
+    estimate = estimate %>% as.double() %>% round(.,3),
+    SE = SE %>% as.double() %>% round(.,3),
+    df = as.integer(df)
+    ) %>%
+  ungroup() %>%
+  as.data.frame()
+
+t.test.summary22 <- t.test.summary22 %>% 
+  mutate(
+    # FDR Corrections across 6 ROIs for pairwise comparisons between ELA and Standard
+    p.value.fdr = group_by(across(p.value, ~p.adjust(p.value, method="fdr"))) %>% pull(p.value),
+    estimate = estimate %>% as.double() %>% round(.,3),
+    SE = SE %>% as.double() %>% round(.,3),
+    df = as.integer(df)
+    ) %>%
+  ungroup() %>%
+  as.data.frame()
+
+t.test.summary33 <- t.test.summary33 %>% 
+  mutate(
+    # FDR Corrections across 6 ROIs for pairwise comparisons between ELA and Standard
+    p.value.fdr = group_by(across(p.value, ~p.adjust(p.value, method="fdr"))) %>% pull(p.value),
+    estimate = estimate %>% as.double() %>% round(.,3),
+    SE = SE %>% as.double() %>% round(.,3),
+    df = as.integer(df)
+    ) %>%
+  ungroup() %>%
+  as.data.frame()
+```
+
+### UB2020 XSLX OUTPUT
+
+```{R}
+if (!dir.exists(res_dir)) {dir.create(res_dir)}
+if (!file.exists(paste0(res_dir,dir_tmp,"_LME_Results.xlsx"))) { 
+  wb <- createWorkbook()
+  addWorksheet(wb, "ANOVA_Fit")
+  addWorksheet(wb, "ANOVA_Summary")
+  addWorksheet(wb, "T_Test_Summary_Cond")
+  addWorksheet(wb, "T_Test_Summary_Group")
+  addWorksheet(wb, "T_Test_Summary_Pstep")
+  writeDataTable(wb
+               , sheet = "ANOVA_Fit"
+               , afit.list
+               , colNames = T)
+  writeDataTable(wb
+               , sheet = "ANOVA_Summary"
+               , aout_full
+               , colNames = T)
+  writeDataTable(wb
+               , sheet = "T_Test_Summary_Cond"
+               , t.test.summary11
+               , colNames = T)
+  writeDataTable(wb
+               , sheet = "T_Test_Summary_Group"
+               , t.test.summary22
+               , colNames = T)
+  writeDataTable(wb
+               , sheet = "T_Test_Summary_Pstep"
+               , t.test.summary33
+               , colNames = T)
+  saveWorkbook(wb, file = paste0(res_dir,dir_tmp,"_LME_Results.xlsx"), overwrite = T)
+  saveRDS(list(
+    "ANOVA_Fit" = afit.list,
+    "ANOVA_Summary" = aout_full,
+    "T_Test_Summary_Cond" = t.test.summary11,
+    "T_Test_Summary_Group" = t.test.summary22,
+    "T_Test_Summary_Pstep" = t.test.summary33),
+    file = paste0(res_dir,dir_tmp,"_LME_Results.RData"))
+}
+```
+
+```{R}
+options(scipen=0)
+```
