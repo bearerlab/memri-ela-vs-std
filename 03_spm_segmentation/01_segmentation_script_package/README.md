@@ -58,8 +58,7 @@ The masks directory contains the generated anatomical masks used for segmentatio
 
 Note that the following folders will contain output data:
   
-  {USER DIRECTORY PATH}/ROI_Analysis/InputImages/ROIs/{Subdirectories for ROI Names provided in ROI_feeder.sh} 
+  {USER DIRECTORY PATH}/Segmentation/masks # NIfTI masks generated from the _InVivo_ Atlas
   
-  {USER DIRECTORY PATH}/ROI_Analysis/OutputData/ROIs_NIfTIs
+  {USER DIRECTORY PATH}/Segmentation/segmentstats # CSV data summaries for each statistical map and compiled CSV.
   
-  {USER DIRECTORY PATH}/ROI_Analysis/OutputData/ROIs_txt
