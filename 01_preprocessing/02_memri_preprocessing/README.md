@@ -2,7 +2,7 @@
 
 This subdirectory contains the code or links to the GitHub repos for code used for processing MEMRI images and for performing quantitative quality assurance tests. All quality assurance code/analysis has a prefix "qa-". 
 
-Please see Bearer Lab GitHub repositories for [Skull Stripping](https://github.com/bearerlab/skull-stripper), [Modal Scaling](https://github.com/bearerlab/modal-scaling), and [ROI analysis](https://github.com/bearerlab/memri-roi-measurement).  
+Please see Bearer Lab GitHub repositories for [Skull Stripping](https://github.com/bearerlab/skull-stripper), [Modal Scaling](https://github.com/bearerlab/modal-scaling), [Averaging Images with FSL](https://github.com/bearerlab/fsl-average), and [ROI analysis](https://github.com/bearerlab/memri-roi-measurement).  
 
 ## Repo File Structure 
 ```
@@ -11,7 +11,7 @@ memri-ela-vs-std/01_preprocessing/02_memri_preprocessing/
 ├── See Bearer Lab GitHub Repo on Skull Stripping. 
 ├── See Bearer Lab GitHub Repo on Modal Scaling.
 ├── qa_snr_analysis.Rmd                 # MR Signal-to-Noise (SNR) comparisons
-├── qa_average.sh                       # Visual Alignment Quality
+├── See Bearer Lab GitHub Repo fsl-average    # Visual Alignment Quality
 ├── qa_jaccard_similarity.sh         # Extracts Values to Determine Jaccard Indices to template
 ├── qa_jaccard_similarity.R          # Calculates, graphs, and tests differences in Jaccard Indices
 ├── qa_mutual_information.R          # Calculates, graphs, and tests differences in NMI
@@ -83,6 +83,9 @@ Note: For measurements, see [/02_roi_analysis/](../02_roi_analysis/README.md)
 
 
 #### `average.sh`, `jaccard_similarity.sh`, `jaccard_similarity.R`, and `mutual_information.R`
+
+For Average.sh please see Bearer Lab [FSL Average](https://github.com/bearerlab/fsl-average) GitHub Repo.
+
 **Purpose:** To quantify anatomical similarity after linear/non-linear alignments. 
 
 **Dependencies:** FSL (for .sh scripts) and R packages listed in /requirements/requirements.md.
