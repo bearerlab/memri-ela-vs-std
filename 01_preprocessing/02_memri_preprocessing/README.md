@@ -33,7 +33,7 @@ memri-ela-vs-std/01_preprocessing/02_memri_preprocessing/
 #### `snr_analysis.Rmd`
 **Purpose:** To statistically compare and visualize SNR between groups - test whether there is a difference in MnCl2 dose via differences in SNR.
 
-**Dependencies:** R/RStudio (see [requirements](../requirements/requirements.md)).
+**Dependencies:** R/RStudio (see [requirements](../../requirements/requirements.md)).
 
 **Usage:** Knit R Markdown File in R Studio
 
