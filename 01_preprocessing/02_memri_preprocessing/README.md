@@ -11,7 +11,7 @@ memri-ela-vs-std/01_preprocessing/02_memri_preprocessing/
 ├── See Bearer Lab GitHub Repo on Skull Stripping. 
 ├── See Bearer Lab GitHub Repo on Modal Scaling.
 ├── qa_snr_analysis.Rmd                 # MR Signal-to-Noise (SNR) comparisons
-├── See Bearer Lab GitHub Repo on Averaging NIfTI files with FS     # Visual Alignment Quality
+├── See Bearer Lab GitHub Repo on Averaging NIfTI files with FSL        # Visual Alignment Quality
 ├── qa_jaccard_similarity.sh         # Extracts Values to Determine Jaccard Indices to template
 ├── qa_jaccard_similarity.R          # Calculates, graphs, and tests differences in Jaccard Indices
 ├── qa_mutual_information.R          # Calculates, graphs, and tests differences in NMI
