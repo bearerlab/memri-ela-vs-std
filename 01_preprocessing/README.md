@@ -19,14 +19,13 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
     ├── Slice_Interpolation.m            # Interpolates slices with RF feedthrough artifacts
     ├── See Bearer Lab GitHub Repo on Skull Stripping. 
     ├── See Bearer Lab GitHub Repo on Modal Scaling.
-    ├── 01_Quality_Control/
+    └── 01_Quality_Control/
         ├── snr_analysis.Rmd              # MR Signal-to-Noise (SNR) comparisons
         ├── average.sh                    # Visual Alignment Quality
         ├── jaccard_similarity.sh         # Extracts Values to Determine Jaccard Indices to template
         ├── jaccard_similarity.R          # Calculates, graphs, and tests differences in Jaccard Indices
         ├── mutual_information.R          # Calculates, graphs, and tests differences in NMI
         └── roi_warped_v_smoothed.Rmd     # Determines the effect of smoothing on information
-    └── avg_preMn_diff_adjustment.sh      # Adjusts ELA images for average pre-Mn(II) difference from Std
 ```
 
 ## Script Descriptions
@@ -141,16 +140,3 @@ Note: For measurements, see [/RegionOfInterest/README.md]{/RegionOfInterest/READ
 
 Note: For ROI measurements, see [/02_roi_analysis/](../02_roi_analysis/README.md)
 
-
-#### `avg_preMn_diff_adjustment.Rmd`
-**Purpose:** To adjust ELA post-Mn(II) images for pre-existing differences between groups' (ELA vs Std) pre-Mn(II) images. 
-
-**Dependencies:** FSL.
-
-**Usage:** In WSL terminal, `./avg_preMn_diff_adjustment.sh`
-
-**Inputs:** ELA pre-Mn(II) images, difference image between ELA and Std pre-Mn(II).
-
-**Outputs:** Fig. S6 graphs and statistical summaries.
-
-Note: For ROI measurements, see [/02_roi_analysis/](../02_roi_analysis/README.md)
