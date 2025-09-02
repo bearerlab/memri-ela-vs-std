@@ -41,7 +41,7 @@ memri-ela-vs-std/01_preprocessing/02_memri_preprocessing/
 
 **Outputs:** Slice interpolated images
 
-Note: For measurements, see [/RegionOfInterest/README.md]{/RegionOfInterest/README.md}
+Note: For measurements, see [/02_roi_analysis/](../02_roi_analysis/README.md)
 
 
 #### `SkullStrip.sh` & `skullstripper_v4.py`
