@@ -27,20 +27,32 @@ The masks directory contains the generated anatomical masks used for segmentatio
 {USER DIRECTORY PATH}/ROI_Analysis/
 ├── All_Within_SPMs/
 │  ├── Post_vs_PreMn/
-│  │  ├── spmT_S_HC_T272-P01-C8.nii
-│  │  ├── spmT_
-│  │  ├── spmT_
-│  │  ├── spmT_
-│  │  ├── spmT_
-│  │  └── spmT_
-│  ├── Post_vs_PostMn/
-│  │  ├── spmT_
-│  │  ├── spmT_
-│  │  ├── spmT_
-│  │  ├── spmT_
-│  │  ├── spmT_
-│  │  └── spmT_
-├── All_Between_SPMs/   
+│  │  ├── spmT_S_HCgtBL_T276-P01-C8.nii
+│  │  ├── spmT_S_TMTgtBL_T276-P01-C8.nii
+│  │  ├── spmT_S_D9gtBL_T276-P01-C8.nii
+│  │  ├── spmT_E_HCgtBL_T272-P01-C8.nii
+│  │  ├── spmT_E_TMTgtBL_T272-P01-C8.nii
+│  │  └── spmT_E_D9gtBL_T272-P01-C8.nii
+│  └── Post_vs_PostMn/
+│     ├── spmT_S_TMTgtHC_T181-P05-C8.nii
+│     ├── spmT_S_TMTltHC_T181-P05-C8.nii
+│     ├── spmT_S_D9gtHC_T181-P05-C8.nii
+│     ├── spmT_S_D9ltHC_T181-P05-C8.nii
+│     ├── spmT_S_D9ltTMT_T181-P05-C8.nii
+│     ├── spmT_S_D9ltTMT_T181-P05-C8.nii
+│     ├── spmT_E_TMTgtHC_T180-P05-C8.nii
+│     ├── spmT_E_TMTltHC_T180-P05-C8.nii
+│     ├── spmT_E_D9gtHC_T180-P05-C8.nii
+│     ├── spmT_E_D9ltHC_T180-P05-C8.nii
+│     ├── spmT_E_D9ltTMT_T180-P05-C8.nii
+│     └── spmT_E_D9ltTMT_T180-P05-C8.nii
+├── All_Between_SPMs/
+│  ├── spmT_EgtS_HC_T172-P05-C8.nii
+│  ├── spmT_EgtS_TMT_T172-P05-C8.nii
+│  ├── spmT_EgtS_D9_T172-P05-C8.nii
+│  ├── spmT_EgtS_HC_T172-P05-C8.nii
+│  ├── spmT_EgtS_TMT_T172-P05-C8.nii
+│  └── spmT_EgtS_D9_T172-P05-C8.nii
 ├── scripts/
 │  ├── feeder.sh
 │  ├── create_mask_feeder.sh
