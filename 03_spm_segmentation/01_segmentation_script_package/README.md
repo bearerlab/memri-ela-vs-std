@@ -21,6 +21,8 @@ Two folders will contain output files: `./masks` and `./segstats`.
 
 The masks directory contains the generated anatomical masks used for segmentation, whereas segstats contains the output csv files (both for single images as well as for compiled output). Note that the compiled output CSV file will have the name provided as user input to `./feeder.sh {ATLAS NIfTI} {ATLAS CSV} {OUTPUT CSV}` 
 
+**EXAMPLE USAGE:** `./feeder.sh InVivoAtlas_labels_v10.4.nii InVivoAtlas_sort_v10.4.csv ELA_Std_SPM_Segmentation.csv`
+
 ```
 {USER DIRECTORY PATH}/ROI_Analysis/
 ├── All_Within_SPMs/
@@ -51,9 +53,9 @@ The masks directory contains the generated anatomical masks used for segmentatio
 │  └── compile.py  
 ├── masks                             
    └── {Anatomical NIFTI masks for each segment in the InVivo Atlas}
-└── segstats                    # Compiles output text files from ROI.sh into a single CSV file
-   ├── {Individual SPM Image CSV Files}
-   └── {Compiled Output CSV File}
+└── segstats                   
+   ├── {Individual SPM Image CSV Files} # One CSV for every image. 
+   └── {Compiled Output CSV File} 
 ```
 
 Note that the following folders will contain output data:
