@@ -15,34 +15,38 @@ _R/RStudio (4.4.1)_: R scripts and Markdown were written and executed via RStudi
 
 Below are lists of dependencies/required packages for scripts used in this manuscript. In this folder are scripts to install the required packages:
 
-For R: [install_r_packages.R](/install_R_packages.R)
-
-For Python: [install_python_packages.py](/install_python_packages.py)
-
 _Bash_: While no specific packages are required for Bash scripts, they do use multiple FSL functions. Thus, FSL must be installed and set up appropriately for bash scripts to run.
 
-_Python_: 
-  - os
-  - numpy
+_Python_: [install_python_packages.py](/install_python_packages.py)
 
-_R_:
+_Note that only numpy is needed in the current version. If desired, install this module manually without the need for the install_python_packages.py script above._
+  1) Data Processing:
+       - numpy
+
+_R:_ [install_r_packages.R](/install_r_packages.R)
 
   1) Data Processing:
        - openxlsx
        - tidyverse
        - abind
+       - reshape2
        - RNifti
 
-  3) Data Visualization:
+  2) Data Visualization:
        - knitr
+       - cowplot
+       - grid
+       - gridExtra
+       - gridGraphics
        - ggplot2
        - ggnewscale
-       - cowplot
+       - ggpubr
+       - RColorBrewer
 
-  4) Data Analysis/Statistics:
+  3) Data Analysis/Statistics:
        - nlme
        - emmeans
-       - cars
+       - car
        - effectsize
        - zoo
        - aricode
@@ -50,4 +54,6 @@ _R_:
 
 
 _R Helper Functions_:
-See `./helper_functions.R`
+Two R helper functions were acquired from [Advanced Data Analytics I/II (2019/2022)](https://statacumen.com/teaching/ada1/ada1-f19/) written by Dr. Erik B. Erhardt, of the University of New Mexico's Department of Statistics. The latest versions of these functions have been posted to Dr. Erhardt's GitHub ([_erikmisc_](https://github.com/erikerhardt/erikmisc/)).
+1) _bs_one_samp_dist()_ -- bootstrapped resampled distribution of residuals from one-sample tests to check assumption of normality. 
+2) _bs_two_samp_dist()_ -- bootstrapped resampled distribution of residuals from two-sample tests to check assumption of normality. 
