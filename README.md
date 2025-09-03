@@ -1,8 +1,9 @@
 # Code used for data processing and analysis in 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'
 
-Authors: Uselman, Taylor. W, Jacobs, Russell E., and Bearer, Elaine L.
+__Authors:__ Uselman, Taylor. W, Jacobs, Russell E., and Bearer, Elaine L.
 
 [![DOI](https://img.shields.io/badge/DOI-10.1101/bioRxiv.2023.09.10.557058-maroon)](https://doi.org/10.1101/2023.09.10.557058)
+
 
 ## Overview
 
@@ -20,7 +21,7 @@ Please review each of the following subdirectories for more information on 1) ME
 - [FSL (FMRIB Software Library)](https://fsl.fmrib.ox.ac.uk/fsl/docs/#/)
 - [NiftyReg](https://github.com/KCL-BMEIS/niftyreg)
 - Various R and Python Packages (see packages used in requirement notes)
-- **[See full explanation of Requirements](requirements/requirements.md)**
+- **[See full explanation of Requirements](requirements/)**
 
 Note that the code listed in this repository uses various software packages from R and Python, all of which have permissive licenses, as well as wrapper scripts for FSL, which has a unique non-commercial [license](https://fsl.fmrib.ox.ac.uk/fsl/docs/#/license). 
 
