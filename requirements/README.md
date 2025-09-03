@@ -17,13 +17,13 @@ Below are lists of dependencies/required packages for scripts used in this manus
 
 _Bash_: While no specific packages are required for Bash scripts, they do use multiple FSL functions. Thus, FSL must be installed and set up appropriately for bash scripts to run.
 
-_Python_: [install_python_packages.py](/install_python_packages.py)
+_Python_: [install_python_packages.py](./install_python_packages.py)
 
 _Note that only numpy is needed in the current version. If desired, install this module manually without the need for the install_python_packages.py script above._
   1) Data Processing:
        - numpy
 
-_R:_ [install_r_packages.R](/install_r_packages.R)
+_R:_ [install_r_packages.R](./install_r_packages.R)
 
   1) Data Processing:
        - openxlsx
