@@ -20,7 +20,7 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
     ├── See Bearer Lab GitHub Repo on Skull Stripping. 
     ├── See Bearer Lab GitHub Repo on Modal Scaling.
     ├── qa_snr_analysis.Rmd              # MR Signal-to-Noise (SNR) comparisons
-    ├── qa_average.sh                    # Visual Alignment Quality
+    ├── See Bearer Lab GitHub Repo on averaging.
     ├── qa_jaccard_similarity.sh         # Extracts Values to Determine Jaccard Indices to template
     ├── qa_jaccard_similarity.R          # Calculates, graphs, and tests differences in Jaccard Indices
     ├── qa_mutual_information.R          # Calculates, graphs, and tests differences in NMI
@@ -110,7 +110,10 @@ Note: For measurements, see [/02_roi_analysis/](../02_roi_analysis/README.md)
     - Optional: PNGs of modally scaled histograms.
 
 
-#### `average.sh`, `jaccard_similarity.sh`, `jaccard_similarity.R`, and `mutual_information.R`
+#### `fsl-average.sh`, `jaccard_similarity.sh`, `jaccard_similarity.R`, and `mutual_information.R`
+
+For `fsl-average.sh`, please see Bearer Lab [Averaging Images with FSL](https://github.com/bearerlab/fsl-average) GitHub Repo.
+
 **Purpose:** To quantify anatomical similarity after linear/non-linear alignments. 
 
 **Dependencies:** FSL (for .sh scripts) and R packages listed in /requirements/requirements.md.
