@@ -16,7 +16,7 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 ├── 01_behavioral_analysis/
 │   └── behavioral_analysis.Rmd          # Main behavioral processing and analysis
 └── 02_memri_preprocessing/
-    ├── Slice_Interpolation.m            # Interpolates slices with RF feedthrough artifacts
+    ├── slice_interpolation.m            # Interpolates slices with RF feedthrough artifacts
     ├── See Bearer Lab GitHub Repo on Skull Stripping. 
     ├── See Bearer Lab GitHub Repo on Modal Scaling.
     ├── qa_snr_analysis.Rmd              # MR Signal-to-Noise (SNR) comparisons
