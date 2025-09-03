@@ -35,4 +35,8 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 
 ```
 
+## Requirements
 
+See [Requirements](../requirements/requirements.md) for more on R packages used.
+
+Specifically, see [install_r_packages.R](../requirements/install_r_packages.R).
