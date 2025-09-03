@@ -8,7 +8,7 @@ Here, we provide the R code used to generate column graphs in Fig. 5, 6, and S8.
 
 **Purpose:** To generate column graphs from the segmentation of statistical maps.  
 
-**Dependencies:** R/RStudio (see [Requirements](../../requirements/README.md) for more on R packages used.)
+**Dependencies:** R/RStudio (see [Requirements](../../requirements/) for more on R packages used.)
 
 **Usage:** Knit R Markdown File in R Studio
 
