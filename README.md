@@ -46,3 +46,64 @@ Note that the code listed in this repository uses various software packages from
 [7.](https://pubmed.ncbi.nlm.nih.gov/19818524/) Modat, et al. (2010). Fast free-form deformation using graphics processing units. Computer Methods And Programs In Biomedicine,98(3), 278–284. doi:10.1016/j.cmpb.2009.09.002
 
 **R and Python Packages**
+
+_Python_
+
+[8.](https://doi.org/10.1038/s41586-020-2649-2) Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). DOI: 10.1038/s41586-020-2649-2.
+
+_R_
+
+[9.](https://github.com/erikerhardt/erikmisc) Erhard, Erik B. “Erikmisc: Miscellaneous Functions for Solving Complex Data Analysis Workflows.” GitHub, 2021.
+
+[10.](http://www.jstatsoft.org/v21/i12/) Wickham, Hadley. “Reshaping Data with the Reshape Package.” Journal of Statistical Software, vol. 21, no. 12, 2007, pp. 1–20.
+
+[11.](https://CRAN.R-project.org/package=gridExtra) Auguie, Baptiste. gridExtra: Miscellaneous Functions for “Grid” Graphics. 2017.
+
+[12.](https://doi.org/10.21105/joss.02815) Ben-Shachar, Mattan S., et al. “Effectsize: Estimation of Effect Size Indices and Standardized Parameters.” Journal of Open Source Software, vol. 5, no. 56, 2020, p. 2815.
+
+[13.](https://CRAN.R-project.org/package=ggnewscale) Campitelli, Elio. Ggnewscale: Multiple Fill and Colour Scales in “Ggplot2.” 2024.
+
+[14.](https://CRAN.R-project.org/package=aricode) Chiquet, Julien, et al. Aricode: Efficient Computations of Standard Clustering Comparison Measures. 2023.
+
+[15.](https://CRAN.R-project.org/package=RNifti) Clayden, Jon, et al. RNifti: Fast R and C++ Access to NIfTI Images. 2024
+
+[16.](https://socialsciences.mcmaster.ca/jfox/Books/Companion/) Fox, John, and Sanford Weisberg. An R Companion to Applied Regression. Third, Sage, 2019.
+
+[17.](https://CRAN.R-project.org/package=nortest) Gross, Juergen, and Uwe Ligges. Nortest: Tests for Normality. 2015.
+
+[18.](https://doi.org/10.21105/joss.01686) Hadley Wickham, et al. “Welcome to the Tidyverse.” Journal of Open Source Software, vol. 4, no. 43, 2019, p. 1686.
+
+[19.](https://doi.org/10.1038/s41586-020-2649-2) Harris, Charles R., et al. “Array Programming with NumPy.” Nature, vol. 585, no. 7825, Sep. 2020, pp. 357–62.
+
+[20.](https://CRAN.R-project.org/package=RNifti) Jon Clayden, Bob Cox, and Mark Jenkinson. RNifti: Fast R and C++ Access to NIfTI Images. 2024.
+
+[21.](https://CRAN.R-project.org/package=ggpubr) Kassambara, Alboukadel. Ggpubr: “ggplot2” Based Publication Ready Plots. 2023.
+
+[22.](https://CRAN.R-project.org/package=emmeans) Lenth, Russell V. Emmeans: Estimated Marginal Means, Aka Least-Squares Means. 2024.
+
+[23.](https://CRAN.R-project.org/package=gridGraphics) Murrell, Paul, and Zhijian Wen. gridGraphics: Redraw Base Graphics Using “grid” Graphics. 2020.
+
+[24.](https://CRAN.R-project.org/package=RColorBrewer) Neuwirth, Erich. RColorBrewer: ColorBrewer Palettes. 2022.
+
+[25.](https://CRAN.R-project.org/package=nlme) Pinheiro, José, et al. Nlme: Linear and Nonlinear Mixed Effects Models. 2024.
+
+[26.](https://CRAN.R-project.org/package=abind) Plate, Tony, and Richard Heiberger. Abind: Combine Multidimensional Arrays. 2016.
+
+[27.](https://CRAN.R-project.org/package=openxlsx) Schauberger, Philipp, and Alexander Walker. Openxlsx: Read, Write and Edit Xlsx Files. 2023.
+
+[28.](https://ggplot2.tidyverse.org) Wickham, Hadley. Ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2016.
+
+[29.](https://CRAN.R-project.org/package=cowplot) Wilke, Claus O. Cowplot: Streamlined Plot Theme and Plot Annotations for “Ggplot2.” 2024.
+
+[30.](https://yihui.org/knitr/) Xie, Yihui. Knitr: A General-Purpose Package for Dynamic Report Generation in R. 2025.
+
+[31.](https://doi.org/10.18637/jss.v014.i06) Zeileis, Achim, and Gabor Grothendieck. “Zoo: S3 Infrastructure for Regular and Irregular Time Series.” Journal of Statistical Software, vol. 14, no. 6, 2005, pp. 1–27.
+
+**Bearer Lab:**
+
+[32.](https://doi.org/10.1016/j.jneumeth.2015.09.031) Delora, Adam, et al. “A Simple Rapid Process for Semi-Automated Brain Extraction from Magnetic Resonance Images of the Whole Mouse Head.” Journal of Neuroscience Methods, vol. 257, 2016, pp. 185–93.
+
+[33.](https://doi.org/10.1002/cpmb.40) Medina, Christopher S., et al. “Automated Computational Processing of 3-D MR Images of Mouse Brain for Phenotyping of Living Animals.” Current Protocols in Molecular Biology, vol. 119, no. 1, 2017, p. 29A.5.1-29A.5.38.
+
+[34.](https://doi.org/10.1016/j.neuroimage.2007.05.010) Bearer EL, Zhang X, Jacobs RE. Live imaging of neuronal connections by magnetic resonance: Robust transport in the hippocampal-septal memory circuit in a mouse model of Down syndrome. Neuroimage. 2007 Aug 1;37(1):230-42. doi: 10.1016/j.neuroimage.2007.05.010.
+
