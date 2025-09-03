@@ -37,6 +37,6 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
 
 ## Requirements
 
-See [Requirements](../requirements/requirements.md) for more on R and Python packages used.
+See [Requirements](../requirements/README.md) for more on R and Python packages used.
 
 Specifically, see [install_r_packages.R](../requirements/install_r_packages.R) and [install_python_packages.R](../requirements/install_python_packages.py).
