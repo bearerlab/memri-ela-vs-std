@@ -112,7 +112,7 @@ Note: For measurements, see [/02_roi_analysis/](../02_roi_analysis/README.md)
 
 #### `fsl-average.sh`, `jaccard_similarity.sh`, `jaccard_similarity.R`, and `mutual_information.R`
 
-For `fsl-average.sh`, please see Bearer Lab [Averaging Images with FSL](https://github.com/bearerlab/fsl-average) GitHub Repo.
+For `fsl-average.sh`, please see Bearer Lab [__Averaging Images with FSL__](https://github.com/bearerlab/fsl-average) GitHub Repo.
 
 **Purpose:** To quantify anatomical similarity after linear/non-linear alignments. 
 
