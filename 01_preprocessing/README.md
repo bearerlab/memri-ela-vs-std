@@ -119,7 +119,7 @@ For `fsl-average.sh`, please see Bearer Lab [__Averaging Images with FSL__](http
 **Dependencies:** FSL (for .sh scripts) and R packages listed in /requirements/requirements.md.
 
 **Usage:** 
-    1) Run in WSL terminal - `average.sh` (requires input images to be organized in subdirectories for averaging).
+    1) Run in WSL terminal - `fsl-average.sh` (requires input images to be organized in subdirectories for averaging).
     2) Run in WSL terminal - `jaccard_similarity.sh` (requires hard-coded directories and file names).
     3) Run in R/RStudio - `jaccard_similarity.R` (input is the output of (2)).
     4) Run in R/RStudio - `mutual_information.R` (must be placed inside directory with warped images).
@@ -132,7 +132,7 @@ For `fsl-average.sh`, please see Bearer Lab [__Averaging Images with FSL__](http
 #### `roi_warped_v_smoothed.Rmd`
 **Purpose:** To determine if smoothing results in a difference/loss of information from MEMRI signal intensities. 
 
-**Dependencies:** None.
+**Dependencies:** R/RStudio (see [requirements](../../requirements/requirements.md)).
 
 **Usage:** Knit in RStudio. 
 
