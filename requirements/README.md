@@ -3,7 +3,7 @@
 ## Operating System Script Compatibility
 All code was written and revised on a Windows 10/11 OS (x86_64, mingw32, Intel i7, 32GB RAM). R/Rmd files were run via RStudio for Windows, and Python/Bash scripts were run via Windows Subsystem Linux (WSL). Certain Bash and Python scripts have dependencies for FMRIB Software Library (FSL v6.0, https://fsl.fmrib.ox.ac.uk/fsl/docs/) and Nifty Reg (https://github.com/KCL-BMEIS/niftyreg).
 
-Notice that the scripts generated for this manuscript follow the naming conventions/file directories used by the researchers or have been modified for user input of a local directory. These will likely need to be updated to run any scripts on the user's system.   
+Notice that the scripts generated for this manuscript follow the naming conventions/file directories used by the researchers or have been modified for user input of a local directory. User input (directory/file names) will be needed to run any scripts on the user's system. Hard-coded user input is notated in scripts with '### USER INPUT NEEDED'.
 
 _Bash (GNU bash, version 5.2.21(1))_: All bash scripts were converted from Windows/PC (DOS) to Unix compatibility using dos2unix (https://dos2unix.sourceforge.io/). All converted bash scripts were run in the WSL terminal application. If any bash scripts were not converted to Unix format before upload, please submit an Issue via GitHub and use the 'dos2unix' command for conversion.   
 
