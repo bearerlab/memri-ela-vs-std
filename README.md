@@ -2,7 +2,9 @@
 
 __Authors:__ Uselman, Taylor. W, Jacobs, Russell E., and Bearer, Elaine L.
 
-[![DOI](https://img.shields.io/badge/DOI-10.1101/bioRxiv.2023.09.10.557058-maroon)](https://doi.org/10.1101/2023.09.10.557058)
+_Please cite the published paper if using this code_
+
+[![DOI](https://img.shields.io/badge/DOI-10.1101/bioRxiv.2023.09.10.557058-blue)](https://doi.org/10.1101/2023.09.10.557058) [![DOI](https://img.shields.io/badge/DOI-10.1101/bioRxiv.2023.09.10.557058-maroon)](https://doi.org/10.1101/2023.09.10.557058)
 
 
 ## Overview
