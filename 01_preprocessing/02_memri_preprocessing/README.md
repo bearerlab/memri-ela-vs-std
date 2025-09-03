@@ -7,7 +7,7 @@ Please see Bearer Lab GitHub repositories for [Skull Stripping](https://github.c
 ## Repo File Structure 
 ```
 memri-ela-vs-std/01_preprocessing/02_memri_preprocessing/
-├── Slice_Interpolation.m            # Interpolates slices with RF feedthrough artifacts
+├── slice_interpolation.m            # Interpolates slices with RF feedthrough artifacts
 ├── See Bearer Lab GitHub Repo on Skull Stripping. 
 ├── See Bearer Lab GitHub Repo on Modal Scaling.
 ├── qa_snr_analysis.Rmd                 # MR Signal-to-Noise (SNR) comparisons
@@ -21,7 +21,7 @@ memri-ela-vs-std/01_preprocessing/02_memri_preprocessing/
 #### `slice_interpolation.m`
 **Purpose:** To interpolate slices containing RF feedthrough artifacts with adjacent slice anatomy. 
 
-**Dependencies:** None.
+**Dependencies:** MATLAB
 
 **Usage:** MATLAB run -- Currently only interpolates across Coronal slices.
 
@@ -82,16 +82,16 @@ Note: For measurements, see [/02_roi_analysis/](../02_roi_analysis/README.md)
     - Optional: PNGs of modally scaled histograms.
 
 
-#### `average.sh`, `jaccard_similarity.sh`, `jaccard_similarity.R`, and `mutual_information.R`
+#### `fsl-average.sh`, `jaccard_similarity.sh`, `jaccard_similarity.R`, and `mutual_information.R`
 
-For Average.sh please see Bearer Lab [FSL Average](https://github.com/bearerlab/fsl-average) GitHub Repo.
+For  `fsl-average.sh`, please see Bearer Lab **[FSL Averaging](https://github.com/bearerlab/fsl-average/tree/main)** GitHub Repo.
 
 **Purpose:** To quantify anatomical similarity after linear/non-linear alignments. 
 
 **Dependencies:** FSL (for .sh scripts) and R packages listed in /requirements/requirements.md.
 
 **Usage:** 
-    1) Run in WSL terminal - `average.sh` (requires input images to be organized in subdirectories for averaging).
+    1) Run in WSL terminal - `fsl-average.sh` (requires input images to be organized in subdirectories for averaging).
     2) Run in WSL terminal - `jaccard_similarity.sh` (requires hard-coded directories and file names).
     3) Run in R/RStudio - `jaccard_similarity.R` (input is the output of (2)).
     4) Run in R/RStudio - `mutual_information.R` (must be placed inside directory with warped images).
@@ -104,7 +104,7 @@ For Average.sh please see Bearer Lab [FSL Average](https://github.com/bearerlab/
 #### `roi_warped_v_smoothed.Rmd`
 **Purpose:** To determine if smoothing results in a difference/loss of information from MEMRI signal intensities. 
 
-**Dependencies:** None.
+**Dependencies:** R/RStudio packages (see [requirements](../../requirements/requirements.md)).
 
 **Usage:** Knit in RStudio. 
 
