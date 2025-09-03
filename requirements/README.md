@@ -15,15 +15,17 @@ _R/RStudio (4.4.1)_: R scripts and Markdown were written and executed via RStudi
 
 Below are lists of dependencies/required packages for scripts used in this manuscript. In this folder are scripts to install the required packages:
 
-_Bash_: While no specific packages are required for Bash scripts, they do use multiple FSL functions. Thus, FSL must be installed and set up appropriately for bash scripts to run.
+**_Bash_**: While no specific packages are required for Bash scripts, they do use multiple FSL functions. Thus, [FSL must be installed](https://fsl.fmrib.ox.ac.uk/fsl/docs/#/) and set up appropriately for bash scripts to run.
 
-_Python_: [install_python_packages.py](./install_python_packages.py)
+**_Python_**: [install_python_packages.py](./install_python_packages.py)
 
 _Note that only numpy is needed in the current version. If desired, install this module manually without the need for the install_python_packages.py script above._
   1) Data Processing:
        - numpy
+    
+To run skullstripper_v4.py, users will need to install NiftyReg; [Using Anaconda/Conda](https://anaconda.org/conda-forge/niftyreg); [Using CMake](https://www.greydongilmore.com/post/wsl_docs/niftyreg/).
 
-_R:_ [install_r_packages.R](./install_r_packages.R)
+**_R:_** [install_r_packages.R](./install_r_packages.R)
 
   1) Data Processing:
        - openxlsx
@@ -53,7 +55,7 @@ _R:_ [install_r_packages.R](./install_r_packages.R)
        - nortest
 
 
-_R Helper Functions_:
+**_R Helper Functions_**:
 Two R helper functions were acquired from [Advanced Data Analytics I/II (2019/2022)](https://statacumen.com/teaching/ada1/ada1-f19/) written by Dr. Erik B. Erhardt, of the University of New Mexico's Department of Statistics. The latest versions of these functions have been posted to Dr. Erhardt's GitHub ([_erikmisc_](https://github.com/erikerhardt/erikmisc/)).
 1) _bs_one_samp_dist()_ -- bootstrapped resampled distribution of residuals from one-sample tests to check assumption of normality. 
 2) _bs_two_samp_dist()_ -- bootstrapped resampled distribution of residuals from two-sample tests to check assumption of normality. 
