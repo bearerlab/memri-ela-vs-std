@@ -33,7 +33,7 @@ memri-ela-vs-std/01_preprocessing/02_memri_preprocessing/
 #### `snr_analysis.Rmd`
 **Purpose:** To statistically compare and visualize SNR between groups - test whether there is a difference in MnCl2 dose via differences in SNR.
 
-**Dependencies:** R/RStudio (see [requirements](../../requirements/requirements.md)).
+**Dependencies:** R/RStudio (see [requirements](../../requirements/)).
 
 **Usage:** Knit R Markdown File in R Studio
 
@@ -41,7 +41,7 @@ memri-ela-vs-std/01_preprocessing/02_memri_preprocessing/
 
 **Outputs:** Statistical summaries and plots shown in Fig. S2D.
 
-Note: For measurements, see [/02_roi_analysis/](../02_roi_analysis/README.md)
+Note: For measurements, see [/02_roi_analysis/](../02_roi_analysis/)
 
 
 #### `SkullStrip.sh` & `skullstripper_v4.py`
@@ -104,7 +104,7 @@ For  `fsl-average.sh`, please see Bearer Lab **[FSL Averaging](https://github.co
 #### `roi_warped_v_smoothed.Rmd`
 **Purpose:** To determine if smoothing results in a difference/loss of information from MEMRI signal intensities. 
 
-**Dependencies:** R/RStudio packages (see [requirements](../../requirements/requirements.md)).
+**Dependencies:** R/RStudio packages (see [requirements](../../requirements/)).
 
 **Usage:** Knit in RStudio. 
 
@@ -112,5 +112,5 @@ For  `fsl-average.sh`, please see Bearer Lab **[FSL Averaging](https://github.co
 
 **Outputs:** Fig. S6 graphs and statistical summaries.
 
-Note: For ROI measurements, see [/02_roi_analysis/](../02_roi_analysis/README.md)
+Note: For ROI measurements, see [/02_roi_analysis/](../02_roi_analysis/)
 
