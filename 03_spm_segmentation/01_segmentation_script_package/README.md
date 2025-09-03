@@ -62,7 +62,7 @@ The masks directory contains the generated anatomical masks used for segmentatio
 │  ├── segments_stats_w_v4.sh
 │  ├── segments_stats_w_postMn_v4.sh
 │  ├── segments_stats_b_v4.sh
-│  └── compile.py  
+│  └── combine_v4.py  
 ├── masks                             
    └── {Anatomical NIFTI masks for each segment in the InVivo Atlas}
 └── segstats                   
