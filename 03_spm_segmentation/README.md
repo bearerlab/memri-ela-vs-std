@@ -28,8 +28,9 @@ Note: Files/Scripts listed below are placed in order of processing steps - inter
    └── combine_v4.py                   # Compiles CSV output files generated for each SPM image into a single CSV file.
 └── 02_segmentation_analyses/
    ├── fracvol_graph.R                 # Function for graphing fractional volumes according to InVivo Atlas anatomical groupings.
-   ├── fav_analysis.Rmd                # R markdown file analysis of Paired SPM t-tests             
-   └── fdv_analysis.Rmd                # R markdown file analysis of Unpaired SPM t-tests  
+   ├── invivo_atlas_process.R          # Function to match segmentation data frames with the InVivo Atlas Sorting CSV file 
+   ├── fav_analysis.R                  # R script for analysis of Paired SPM t-tests             
+   └── fdv_analysis.R                  # R script for analysis of Unpaired SPM t-tests including fractional difference volume dynamics 
              
 
 ```
