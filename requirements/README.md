@@ -11,7 +11,7 @@ _Python (3.11.5)_: Python  scripts were written/revised in Windows and run in WS
 
 _R/RStudio (4.4.1)_: R scripts and Markdown were written and executed via RStudio's Windows Installation. Scripts should run across different operating systems
 
-## Software Packages
+## Required Software Packages
 
 Below are lists of dependencies/required packages for scripts used in this manuscript. In this folder are scripts to install the required packages:
 
