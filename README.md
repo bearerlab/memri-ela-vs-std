@@ -6,7 +6,7 @@ __Affiliations:__
 
 _Please cite this repository (see citation.cff) and the published paper (below) if code is used or modified_
 
-[![DOI](https://img.shields.io/badge/DOI-10.1101/bioRxiv.2023.09.10.557058-blue)](https://doi.org/10.1101/2023.09.10.557058) [![DOI](https://img.shields.io/badge/DOI-10.1101/bioRxiv.2023.09.10.557058-maroon)](https://doi.org/10.1101/2023.09.10.557058)
+[![DOI](https://zenodo.org/badge/1031977187.svg)](https://doi.org/10.5281/zenodo.17089043) [![DOI](https://img.shields.io/badge/DOI-10.1101/bioRxiv.2023.09.10.557058-maroon)](https://doi.org/10.1101/2023.09.10.557058)
 
 
 ## Overview
