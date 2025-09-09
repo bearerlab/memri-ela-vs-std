@@ -5,6 +5,8 @@ This section contains scripts for segmenting MEMRI images, including mask genera
 
 This version of our _InVivo_ Atlas segmentation utilizes FSL functions (fslmaths and fslstats). These scripts wrap FSL, bash, and Python in a way to mask the atlas; parse, mask and summarize SPM images; and compile output data for R analysis. 
 
+To run these scripts/markdown files, individualized data will be needed as input.
+
 **Associated Figures/Tables:**
 - Figure 5-6 (Fractional Activation Volumes and Fractional Difference Volumes)
 - Supplemental Figures S7 and S9 (SPM paired t-test between conditions, and comparison of anatomy by Jacobian Determinants of Deformations)
