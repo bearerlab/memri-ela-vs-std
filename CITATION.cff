@@ -4,25 +4,14 @@ authors:
 - family-names: "Uselman"
   given-names: "Taylor W."
   orcid: "https://orcid.org/0000-0002-3856-5248"
+- family-names: "Jacobs"
+  given-names: "Russell E."
+  orcid: "https://orcid.org/0000-0002-8390-8529"
+- family-names: "Bearer"
+  given-names: "Elaine L."
+  orcid: "https://orcid.org/0000-0002-8390-8529"
 title: "Code used for data processing and analysis in 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'"
-version: 1.0
-doi: 10.5281/zenodo.1234
+version: 1.0.0
+doi: 10.5281/zenodo.17089044
 date-released: 2025-09-03
 url: "https://github.com/bearerlab/memri-ela-vs-std"
-preferred-citation:
-  type: article
-  authors:
-  - family-names: "Uselman"
-    given-names: "Taylor W."
-    orcid: "https://orcid.org/0000-0002-3856-5248"
-  - family-names: "Jacobs"
-    given-names: "Russell E."
-    orcid: "https://orcid.org/0000-0002-8390-8529"
-  - family-names: "Bearer"
-    given-names: "Elaine L."
-    orcid: "https://orcid.org/0000-0002-8390-8529"
-  doi: "10.1101/2023.09.10.557058"
-  journal: "bioRxiv"
-  month: 8
-  title: "Reconfiguration of brain-wide neural activity after early life adversity"
-  year: 2025
