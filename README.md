@@ -13,6 +13,8 @@ Provided in this repository is the code used (or links to GitHub repositories) i
 
 Please review each of the following subdirectories for more information on 1) MEMRI data preprocessing, quality controls, and behavioral analysis; 2)  ROI measurements and c-fos comparisons; and 3) SPM segmentation and analysis.
 
+Note: To run scripts/markdown files, individualized data will be needed as input. 
+
 ## Repository Subdirectories
 - **[01_preprocessing/](01_preprocessing/)** - MEMRI data preprocessing, quality controls, and behavioral analysis (Figures 1, S1-S3 and S4-S6)
 - **[02_roi_analysis/](02_roi_analysis/)** - ROI measurements and c-fos comparisons (Fig. 3-4, S2 and S4-6, and Tables S2-S4)
