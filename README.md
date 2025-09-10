@@ -1,6 +1,6 @@
 # Code used for data processing and analysis in 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'
 
-__Authors:__ <sup>1</sup>Uselman, Taylor. W, <sup>2,3</sup>Jacobs, Russell E., and <sup>1,3</sup>Bearer, Elaine L.
+__Authors:__ Taylor W. Uselman<sup>1</sup>, Russell E. Jacobs<sup>2,3</sup>, and Elaine L. Bearer<sup>1,3</sup>.
 
 __Affiliations:__ <sup>1</sup>University of New Mexico Health Sciences Center; <sup>2</sup>Zilkha Neurogenetic Institute, Keck School of Medicine, University of Southern California; <sup>3</sup>Beckman Institute, California Institute of Technology
 
