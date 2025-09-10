@@ -1,13 +1,12 @@
 # Code used for data processing and analysis in 'Reconfiguration of Brain-wide Neural Activity after Early Life Adversity'
 
-__Authors:__ Uselman, Taylor. W, Jacobs, Russell E., and Bearer, Elaine L.
+__Authors:__ <sup>1</sup>Uselman, Taylor. W, <sup>2,3</sup>Jacobs, Russell E., and <sup>1,3</sup>Bearer, Elaine L.
 
-__Affiliations:__
+__Affiliations:__ <sup>1</sup>University of New Mexico Health Sciences Center; <sup>2</sup>Zilkha Neurogenetic Institute, Keck School of Medicine, University of Southern California; <sup>3</sup>Beckman Institute, California Institute of Technology
 
-_Please cite this repository (see citation.cff) and the published paper (below) if code is used or modified_
+_If code is used or modified, please cite this repository (see "Cite this Repository" above) and the published paper (DOI below)._
 
-[![DOI](https://zenodo.org/badge/1031977187.svg)](https://doi.org/10.5281/zenodo.17089043) [![DOI](https://img.shields.io/badge/DOI-10.1101/bioRxiv.2023.09.10.557058-maroon)](https://doi.org/10.1101/2023.09.10.557058)
-
+[![DOI](https://img.shields.io/badge/DOI-10.1101/bioRxiv.2023.09.10.557058-maroon)](https://doi.org/10.1101/2023.09.10.557058)
 
 ## Overview
 
